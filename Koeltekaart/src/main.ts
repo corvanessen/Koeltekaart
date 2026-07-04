@@ -45,7 +45,7 @@ type StaticPoint = {
 let STATIC_LOCATIONS: StaticPoint[] = []
 
 async function loadStaticLocations() {
-  const response = await fetch('/locations.json')
+  const response = await fetch('/Koeltekaart/locations.json')
 
   if (!response.ok) {
     throw new Error(`Kon locaties niet laden: ${response.status}`)
@@ -170,7 +170,7 @@ function isInLeiden(point: WaterPoint) {
 
 async function loadWaterPoints() {
   try {
-    const response = await fetch('/2022 01 Drinkwaterkaart.gpx')
+    const response = await fetch('/Koeltekaart/2022 01 Drinkwaterkaart.gpx')
 
     if (!response.ok) {
       throw new Error(`Kan GPX niet laden: ${response.status}`)
