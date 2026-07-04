@@ -2,13 +2,59 @@ import './style.css'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
-const dropIcon = L.divIcon({
-  html: '<span class="map-drop-icon">💧</span>',
-  className: 'map-drop-marker',
-  iconSize: [24, 24],
-  iconAnchor: [12, 24],
-})
+// ---------- Categories ----------
+// Elke categorie heeft een eigen emoji-marker, in dezelfde stijl als de
+// bestaande waterdruppel-icoon (divIcon + emoji, geen plaatjes nodig).
+type CategoryKey = 'water' | 'binnen' | 'park' | 'zwembad'
 
+const CATEGORIES: Record<CategoryKey, { label: string; emoji: string }> = {
+  water: { label: 'Drinkwaterpunt', emoji: '💧' },
+  binnen: { label: 'Koelteplek binnen', emoji: '🏛️' },
+  park: { label: 'Park / schaduw', emoji: '🌳' },
+  zwembad: { label: 'Zwembad (betaald)', emoji: '🏊' },
+}
+
+function makeIcon(emoji: string) {
+  return L.divIcon({
+    html: `<span class="map-drop-icon">${emoji}</span>`,
+    className: 'map-drop-marker',
+    iconSize: [24, 24],
+    iconAnchor: [12, 24],
+  })
+}
+
+function buildPopupContent(title: string, body: string) {
+  return `
+    <div class="popup-card">
+      <div class="popup-title">${title}</div>
+      <div class="popup-body">${body}</div>
+    </div>
+  `
+}
+
+// ---------- Static locations (koelteplekken, parken, zwembaden) ----------
+type StaticPoint = {
+  cat: Exclude<CategoryKey, 'water'>
+  name: string
+  addr: string
+  desc: string
+  lat: number
+  lon: number
+}
+
+let STATIC_LOCATIONS: StaticPoint[] = []
+
+async function loadStaticLocations() {
+  const response = await fetch('/locations.json')
+
+  if (!response.ok) {
+    throw new Error(`Kon locaties niet laden: ${response.status}`)
+  }
+
+  STATIC_LOCATIONS = (await response.json()) as StaticPoint[]
+}
+
+// ---------- App shell ----------
 type WaterPoint = {
   name: string
   lat: number
@@ -24,21 +70,88 @@ if (!app) {
 
 app.innerHTML = `
   <header class="page-header">
-    <h1>Drinkwaterpunten in Leiden</h1>
-    <p>Alle punten uit de GPX-data binnen de gemeente Leiden.</p>
+    <div class="header-top">
+      <div>
+        <h1>Koeltekaart Leiden</h1>
+        <p>Koele plekken bij hitte, in en om Leiden.</p>
+      </div>
+      <div class="weather-badge" id="weatherBadge">Weer wordt geladen…</div>
+    </div>
   </header>
-  <div id="map"></div>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <h2>Categorieën</h2>
+      <div id="filters"></div>
+      <p class="legend-note">
+        Gegevens verzameld uit gemeentelijke berichtgeving, drinkwaterkaart.nl
+        en OpenBomenKaart. Locaties en openingstijden kunnen wijzigen.
+      </p>
+    </aside>
+    <div id="map"></div>
+  </div>
 `
 
+// ---------- Weather (Open-Meteo, geen API-key nodig) ----------
+async function loadWeather() {
+  const badge = document.getElementById('weatherBadge')
+  if (!badge) return
+  try {
+    const res = await fetch(
+      'https://api.open-meteo.com/v1/forecast?latitude=52.16&longitude=4.49&current=temperature_2m,apparent_temperature&timezone=Europe%2FAmsterdam',
+    )
+    const data = await res.json()
+    const t = Math.round(data.current.temperature_2m)
+    const feels = Math.round(data.current.apparent_temperature)
+    badge.innerHTML = `<strong>${t}°C</strong>&nbsp;· voelt als ${feels}°C`
+  } catch (error) {
+    badge.textContent = 'Weer kon niet worden geladen'
+    console.error(error)
+  }
+}
+
+void loadWeather()
+
+// ---------- Map ----------
 const map = L.map('map').setView([52.1608, 4.497], 12)
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '&copy; OpenStreetMap contributors',
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  maxZoom: 20,
+  subdomains: 'abcd',
+  attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
 }).addTo(map)
 
-const markerGroup = L.layerGroup().addTo(map)
+const layerGroups: Record<CategoryKey, L.LayerGroup> = {
+  water: L.layerGroup().addTo(map),
+  binnen: L.layerGroup().addTo(map),
+  park: L.layerGroup().addTo(map),
+  zwembad: L.layerGroup().addTo(map),
+}
 
+const counts: Record<CategoryKey, number> = { water: 0, binnen: 0, park: 0, zwembad: 0 }
+
+// ---------- Statische locaties toevoegen ----------
+async function loadStaticLocationsToMap() {
+  try {
+    await loadStaticLocations()
+
+    STATIC_LOCATIONS.forEach((loc) => {
+      counts[loc.cat]++
+      const body = `${loc.addr}${loc.desc ? ' — ' + loc.desc : ''}`
+      const content = buildPopupContent(loc.name, body)
+      L.marker([loc.lat, loc.lon], { icon: makeIcon(CATEGORIES[loc.cat].emoji) })
+        .bindPopup(content, { autoPan: true })
+        .addTo(layerGroups[loc.cat])
+    })
+
+    renderFilters()
+  } catch (error) {
+    console.error('Kon statische locaties niet laden', error)
+  }
+}
+
+void loadStaticLocationsToMap()
+
+// ---------- Drinkwaterpunten uit de GPX (ongewijzigde logica) ----------
 const municipalityBounds = {
   minLat: 52.11,
   maxLat: 52.28,
@@ -55,7 +168,7 @@ function isInLeiden(point: WaterPoint) {
   )
 }
 
-async function loadPoints() {
+async function loadWaterPoints() {
   try {
     const response = await fetch('/2022 01 Drinkwaterkaart.gpx')
 
@@ -73,45 +186,65 @@ async function loadPoints() {
         const name = waypoint.querySelector('name')?.textContent?.trim() ?? 'Onbekend'
         const comment = waypoint.querySelector('cmt')?.textContent?.trim() ?? ''
 
-        return {
-          name,
-          lat,
-          lon,
-          comment,
-        } satisfies WaterPoint
+        return { name, lat, lon, comment } satisfies WaterPoint
       })
       .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lon) && isInLeiden(point))
 
-    markerGroup.clearLayers()
+    layerGroups.water.clearLayers()
+    counts.water = points.length
+    renderFilters() // update de teller in de zijbalk
 
     points.forEach((point) => {
       const commentText = (point.comment || 'Drinkwaterpunt').replace(/\s+/g, ' ').trim()
-      const content = `<div class="tooltip-content"><strong>${point.name}</strong><br /><span class="tooltip-comment">${commentText}</span></div>`
+      const content = buildPopupContent(point.name, commentText)
 
-      L.marker([point.lat, point.lon], { icon: dropIcon })
-        .bindTooltip(content, {
-          sticky: true,
-          direction: 'top',
-        })
-        .bindPopup(content)
-        .addTo(markerGroup)
+      L.marker([point.lat, point.lon], { icon: makeIcon(CATEGORIES.water.emoji) })
+        .bindPopup(content, { autoPan: true })
+        .addTo(layerGroups.water)
     })
-
-    if (points.length > 0) {
-      const bounds = L.latLngBounds(points.map((point) => [point.lat, point.lon] as [number, number]))
-      map.fitBounds(bounds, { padding: [20, 20] })
-    } else {
-      map.setView([52.1608, 4.497], 12)
-    }
   } catch (error) {
-    const mapContainer = document.getElementById('map')
-
-    if (mapContainer) {
-      mapContainer.innerHTML = '<p class="map-error">Kon de GPX-data niet laden.</p>'
-    }
-
-    console.error(error)
+    console.error('Kon drinkwaterpunten niet laden', error)
   }
 }
 
-void loadPoints()
+void loadWaterPoints()
+
+// ---------- Zijbalk met filters per categorie ----------
+function renderFilters() {
+  const filtersEl = document.getElementById('filters')
+  if (!filtersEl) return
+
+  const checkedState: Record<string, boolean> = {}
+  filtersEl.querySelectorAll<HTMLInputElement>('input[type=checkbox]').forEach((input) => {
+    checkedState[input.dataset.cat ?? ''] = input.checked
+  })
+
+  filtersEl.innerHTML = ''
+  ;(Object.keys(CATEGORIES) as CategoryKey[]).forEach((key) => {
+    const cfg = CATEGORIES[key]
+    const row = document.createElement('label')
+    row.className = 'filter-row'
+    const checked = checkedState[key] ?? true
+    row.innerHTML = `
+      <input type="checkbox" ${checked ? 'checked' : ''} data-cat="${key}">
+      <span class="filter-emoji">${cfg.emoji}</span>
+      <span class="filter-label">${cfg.label}</span>
+      <span class="filter-count">${counts[key]}</span>
+    `
+    filtersEl.appendChild(row)
+  })
+}
+
+renderFilters()
+
+document.getElementById('filters')?.addEventListener('change', (e) => {
+  const target = e.target as HTMLInputElement
+  if (target.matches('input[type=checkbox]')) {
+    const cat = target.dataset.cat as CategoryKey
+    if (target.checked) {
+      map.addLayer(layerGroups[cat])
+    } else {
+      map.removeLayer(layerGroups[cat])
+    }
+  }
+})
