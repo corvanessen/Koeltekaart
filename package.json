@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "dev": "npm --prefix Koeltekaart run dev",
+    "build": "npm --prefix Koeltekaart run build",
+    "preview": "npm --prefix Koeltekaart run preview"
+  },
   "dependencies": {
     "@types/leaflet": "^1.9.21",
     "leaflet": "^1.9.4",
