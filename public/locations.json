@@ -1,0 +1,202 @@
+[
+  {
+    "cat": "binnen",
+    "name": "Stadsfoyer Stadhuis",
+    "addr": "Stadhuisplein 1, Leiden",
+    "desc": "Stadsdeel Midden. Benedenverdieping vrij toegankelijk.",
+    "lat": 52.15985,
+    "lon": 4.4906,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "binnen",
+    "name": "Stadskantoor",
+    "addr": "Bargelaan 190, Leiden",
+    "desc": "Stadsdeel Midden. Begane grond vrij toegankelijk.",
+    "lat": 52.165923,
+    "lon": 4.4804033,
+    "address_confirmed": true,
+    "coords_verified": false
+  },
+  {
+    "cat": "binnen",
+    "name": "Rijksmuseum Boerhaave",
+    "addr": "Lange Sint Agnietenstraat 10, Leiden",
+    "desc": "Stadsdeel Midden. Gratis toegang voor 70-plussers.",
+    "lat": 52.1615338,
+    "lon": 4.4889042,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "binnen",
+    "name": "Mimar Sinan Moskee",
+    "addr": "Curaçaostraat 3, Leiden",
+    "desc": "Stadsdeel Noord.",
+    "lat": 52.16716583017126,
+    "lon": 4.507728453616474,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "binnen",
+    "name": "Huis van de Buurt Op Eigen Wieken",
+    "addr": "Valkenpad 5, Leiden",
+    "desc": "Stadsdeel Noord.",
+    "lat": 52.16669,
+    "lon": 4.48435,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "binnen",
+    "name": "Theehuis Noord",
+    "addr": "Joop Vervoornpad 1, Leiden",
+    "desc": "Stadsdeel Noord. Geopend 13.00–17.00 uur.",
+    "lat": 52.1697371,
+    "lon": 4.4998594,
+    "address_confirmed": true,
+    "coords_verified": false
+  },
+  {
+    "cat": "binnen",
+    "name": "Huis van de Buurt De Kooi",
+    "addr": "Driftstraat 49, Leiden",
+    "desc": "Stadsdeel Noord.",
+    "lat": 52.16515,
+    "lon": 4.48495,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "binnen",
+    "name": "Winkelcentrum Kopermolen",
+    "addr": "Kopermolen 1, Leiden",
+    "desc": "Stadsdeel Noord. Ondernemers hebben tafels en stoelen geplaatst.",
+    "lat": 52.1764798,
+    "lon": 4.5053893,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "binnen",
+    "name": "Speeltuin Merendroom",
+    "addr": "Valkenpad, Leiden",
+    "desc": "Stadsdeel Noord. Geopend 14.00–16.00 uur.",
+    "lat": 52.16685,
+    "lon": 4.48462,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "binnen",
+    "name": "Sportcomplex De Vliet",
+    "addr": "Marie Diebenplaats 104, Leiden",
+    "desc": "Stadsdeel Zuid en Oost. Ook los toegankelijk als koelteplek.",
+    "lat": 52.13866172652605,
+    "lon": 4.479996900178032,
+    "address_confirmed": true,
+    "coords_verified": false
+  },
+  {
+    "cat": "binnen",
+    "name": "Huis van de Buurt Stevenshof",
+    "addr": "Trix Terwindtstraat 4, Leiden",
+    "desc": "Stadsdeel Zuid en Oost.",
+    "lat": 52.1504031,
+    "lon": 4.4542095,
+    "address_confirmed": true,
+    "coords_verified": false
+  },
+  {
+    "cat": "binnen",
+    "name": "Naturalis Biodiversity Center",
+    "addr": "Darwinweg 2, Leiden",
+    "desc": "Stadsdeel West. Begane grond vrij toegankelijk.",
+    "lat": 52.16447,
+    "lon": 4.48123,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "zwembad",
+    "name": "Zwembad De Zijl",
+    "addr": "Paramaribostraat 66, Leiden",
+    "desc": "Open bij hitte, toegang tegen betaling.",
+    "lat": 52.16722402870023,
+    "lon": 4.514992205162902,
+    "address_confirmed": true,
+    "coords_verified": false
+  },
+  {
+    "cat": "zwembad",
+    "name": "Zwembad De Vliet",
+    "addr": "Marie Diebenplaats 104, Leiden",
+    "desc": "Binnenbad, open bij hitte, toegang tegen betaling.",
+    "lat": 52.13891673582082,
+    "lon": 4.481143506265176,
+    "address_confirmed": true,
+    "coords_verified": false
+  },
+  {
+    "cat": "park",
+    "name": "Leidse Hout",
+    "addr": "Leidse Hout, Leiden",
+    "desc": "Groot bos- en parkgebied met veel schaduw.",
+    "lat": 52.1769596,
+    "lon": 4.4780952,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "park",
+    "name": "Plantsoen",
+    "addr": "Plantsoen, Leiden",
+    "desc": "19e-eeuws stadspark aan de singel.",
+    "lat": 52.15402,
+    "lon": 4.50235,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "park",
+    "name": "Huigpark",
+    "addr": "Huigpark, Leiden",
+    "desc": "Park langs de Maresingel, onderdeel Singelpark.",
+    "lat": 52.1637438,
+    "lon": 4.4978689,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "park",
+    "name": "Van der Werfpark",
+    "addr": "Kruitschip, Leiden",
+    "desc": "Park uit 1886 langs het Steenschuur, tussen Garenmarkt en Doezastraat. Adres gecorrigeerd (was 'Steenschuur'); coördinaat nog niet geverifieerd.",
+    "lat": 52.155558281128265,
+    "lon": 4.490612150725225,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "park",
+    "name": "Kweektuin Singelpark",
+    "addr": "Plesmanlaan, Leiden",
+    "desc": "Schaduwrijk onderdeel van het Singelpark.",
+    "lat": 52.16396,
+    "lon": 4.47973,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "zwembad",
+    "name": "Zwembad De Vliet (buitenbad)",
+    "addr": "Voorschoterweg 6, Leiden",
+    "desc": "Buitenbad, oudste en langste van Leiden. Geopend april t/m september, toegang tegen betaling.",
+    "lat": 52.14006973735579,
+    "lon": 4.482696898610025,
+    "address_confirmed": true,
+    "coords_verified": false
+  }
+]

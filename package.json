@@ -1,12 +1,20 @@
 {
+  "name": "koeltekaart",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "npm --prefix Koeltekaart run dev",
-    "build": "npm --prefix Koeltekaart run build",
-    "preview": "npm --prefix Koeltekaart run preview"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.21",
     "leaflet": "^1.9.4",
     "react-leaflet": "^5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1"
   }
 }
