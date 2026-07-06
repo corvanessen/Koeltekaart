@@ -83,8 +83,8 @@ app.innerHTML = `
       <h2>Categorieën</h2>
       <div id="filters"></div>
       <p class="legend-note">
-        Gegevens verzameld uit gemeentelijke berichtgeving, drinkwaterkaart.nl
-        en OpenBomenKaart. Locaties en openingstijden kunnen wijzigen.
+        Gegevens verzameld uit gemeentelijke berichtgeving, drinkwaterkaart.nl,
+        OpenBomenKaart en OpenStreetMap. Locaties en openingstijden kunnen wijzigen.
       </p>
     </aside>
     <div id="map"></div>
@@ -150,6 +150,40 @@ async function loadStaticLocationsToMap() {
 }
 
 void loadStaticLocationsToMap()
+
+// ---------- Park-omtrekken (statische GeoJSON, opgehaald uit OpenStreetMap) ----------
+type ParkFeatureProperties = {
+  name?: string
+}
+
+async function loadParkOutlines() {
+  try {
+    const response = await fetch(`${import.meta.env.BASE_URL}parks.geojson`)
+
+    if (!response.ok) {
+      throw new Error(`Kon park-omtrekken niet laden: ${response.status}`)
+    }
+
+    const data = (await response.json()) as GeoJSON.FeatureCollection<GeoJSON.Polygon, ParkFeatureProperties>
+
+    L.geoJSON(data, {
+      style: {
+        color: '#2e7d32',
+        weight: 2,
+        fillColor: '#66bb6a',
+        fillOpacity: 0.2,
+      },
+      onEachFeature: (feature, layer) => {
+        const name = feature.properties?.name ?? 'Park'
+        layer.bindPopup(buildPopupContent(name, 'Park'), { autoPan: true })
+      },
+    }).addTo(layerGroups.park)
+  } catch (error) {
+    console.error('Kon park-omtrekken niet laden', error)
+  }
+}
+
+void loadParkOutlines()
 
 // ---------- Drinkwaterpunten uit de GPX (ongewijzigde logica) ----------
 const municipalityBounds = {
