@@ -3,20 +3,21 @@ import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
 // ---------- Categories ----------
-// Elke categorie heeft een eigen emoji-marker, in dezelfde stijl als de
-// bestaande waterdruppel-icoon (divIcon + emoji, geen plaatjes nodig).
+// Elke categorie heeft een eigen SVG-icoon (uit de "glyphs-poly" iconset,
+// MIT-licentie, via @iconify-json/glyphs-poly), in dezelfde divIcon-opzet
+// als voorheen met emoji's.
 type CategoryKey = 'water' | 'binnen' | 'park' | 'zwembad'
 
-const CATEGORIES: Record<CategoryKey, { label: string; emoji: string }> = {
-  water: { label: 'Drinkwaterpunt', emoji: '💧' },
-  binnen: { label: 'Koelteplek binnen', emoji: '🏛️' },
-  park: { label: 'Park / schaduw', emoji: '🌳' },
-  zwembad: { label: 'Zwembad (betaald)', emoji: '🏊' },
+const CATEGORIES: Record<CategoryKey, { label: string; icon: string }> = {
+  water: { label: 'Drinkwaterpunt', icon: `${import.meta.env.BASE_URL}icons/water.svg` },
+  binnen: { label: 'Koelteplek binnen', icon: `${import.meta.env.BASE_URL}icons/binnen.svg` },
+  park: { label: 'Park / schaduw', icon: `${import.meta.env.BASE_URL}icons/park.svg` },
+  zwembad: { label: 'Zwembad (betaald)', icon: `${import.meta.env.BASE_URL}icons/zwembad.svg` },
 }
 
-function makeIcon(emoji: string) {
+function makeIcon(iconUrl: string) {
   return L.divIcon({
-    html: `<span class="map-drop-icon">${emoji}</span>`,
+    html: `<span class="map-drop-icon"><img src="${iconUrl}" width="18" height="18" alt="" /></span>`,
     className: 'map-drop-marker',
     iconSize: [24, 24],
     iconAnchor: [12, 24],
@@ -138,7 +139,7 @@ async function loadStaticLocationsToMap() {
       counts[loc.cat]++
       const body = `${loc.addr}${loc.desc ? ' — ' + loc.desc : ''}`
       const content = buildPopupContent(loc.name, body)
-      L.marker([loc.lat, loc.lon], { icon: makeIcon(CATEGORIES[loc.cat].emoji) })
+      L.marker([loc.lat, loc.lon], { icon: makeIcon(CATEGORIES[loc.cat].icon) })
         .bindPopup(content, { autoPan: true })
         .addTo(layerGroups[loc.cat])
     })
@@ -232,7 +233,7 @@ async function loadWaterPoints() {
       const commentText = (point.comment || 'Drinkwaterpunt').replace(/\s+/g, ' ').trim()
       const content = buildPopupContent(point.name, commentText)
 
-      L.marker([point.lat, point.lon], { icon: makeIcon(CATEGORIES.water.emoji) })
+      L.marker([point.lat, point.lon], { icon: makeIcon(CATEGORIES.water.icon) })
         .bindPopup(content, { autoPan: true })
         .addTo(layerGroups.water)
     })
@@ -261,7 +262,7 @@ function renderFilters() {
     const checked = checkedState[key] ?? true
     row.innerHTML = `
       <input type="checkbox" ${checked ? 'checked' : ''} data-cat="${key}">
-      <span class="filter-emoji">${cfg.emoji}</span>
+      <img class="filter-emoji" src="${cfg.icon}" width="18" height="18" alt="" />
       <span class="filter-label">${cfg.label}</span>
       <span class="filter-count">${counts[key]}</span>
     `
