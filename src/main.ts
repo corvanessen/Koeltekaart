@@ -6,13 +6,14 @@ import L from 'leaflet'
 // Elke categorie heeft een eigen SVG-icoon (uit de "glyphs-poly" iconset,
 // MIT-licentie, via @iconify-json/glyphs-poly), in dezelfde divIcon-opzet
 // als voorheen met emoji's.
-type CategoryKey = 'water' | 'binnen' | 'park' | 'zwembad'
+type CategoryKey = 'water' | 'binnen' | 'park' | 'zwembad' | 'buitenwater'
 
 const CATEGORIES: Record<CategoryKey, { label: string; icon: string }> = {
   water: { label: 'Drinkwaterpunt', icon: `${import.meta.env.BASE_URL}icons/water.svg` },
   binnen: { label: 'Koelteplek binnen', icon: `${import.meta.env.BASE_URL}icons/binnen.svg` },
   park: { label: 'Park / schaduw', icon: `${import.meta.env.BASE_URL}icons/park.svg` },
   zwembad: { label: 'Zwembad (betaald)', icon: `${import.meta.env.BASE_URL}icons/zwembad.svg` },
+  buitenwater: { label: 'Buitenzwemwater (gratis)', icon: `${import.meta.env.BASE_URL}icons/buitenwater.svg` },
 }
 
 function makeIcon(iconUrl: string) {
@@ -121,14 +122,124 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
   attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
 }).addTo(map)
 
+// De hoogte van #map hangt af van de flex-layout (header/sidebar), die na
+// initialisatie nog kan verschuiven (weerbadge, fonts, filters). Leaflet
+// merkt zo'n resize niet vanzelf op, waardoor er een grijze strook zonder
+// tegels kan ontstaan. invalidateSize() bijwerken bij elke resize voorkomt dat.
+const mapEl = document.getElementById('map')
+if (mapEl) {
+  new ResizeObserver(() => map.invalidateSize()).observe(mapEl)
+}
+window.addEventListener('load', () => map.invalidateSize())
+
+// ---------- Mijn locatie ----------
+let locationMarker: L.CircleMarker | null = null
+let locationAccuracyCircle: L.Circle | null = null
+let watchingLocation = false
+let hasCenteredOnLocation = false
+// Zodra de gebruiker zelf aan de kaart schuift, stoppen we met automatisch
+// hercentreren op de locatie-updates (watch:true blijft de marker wel bijwerken).
+let userPannedMap = false
+
+map.on('dragstart', () => {
+  userPannedMap = true
+})
+
+const LocateControl = L.Control.extend({
+  options: { position: 'bottomright' },
+  onAdd: function () {
+    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control locate-control')
+    const button = L.DomUtil.create('a', 'locate-button', container)
+    button.href = '#'
+    button.title = 'Mijn locatie tonen'
+    button.setAttribute('role', 'button')
+    button.setAttribute('aria-label', 'Mijn locatie tonen')
+    button.innerHTML = '◎'
+
+    L.DomEvent.disableClickPropagation(container)
+    L.DomEvent.on(button, 'click', (e) => {
+      L.DomEvent.preventDefault(e)
+      toggleLocate(button)
+    })
+
+    return container
+  },
+})
+
+map.addControl(new LocateControl())
+
+function toggleLocate(button: HTMLElement) {
+  if (watchingLocation) {
+    map.stopLocate()
+    watchingLocation = false
+    button.classList.remove('active')
+    if (locationMarker) {
+      map.removeLayer(locationMarker)
+      locationMarker = null
+    }
+    if (locationAccuracyCircle) {
+      map.removeLayer(locationAccuracyCircle)
+      locationAccuracyCircle = null
+    }
+    return
+  }
+
+  button.classList.add('active')
+  watchingLocation = true
+  hasCenteredOnLocation = false
+  userPannedMap = false
+  map.locate({ setView: false, watch: true, enableHighAccuracy: true, maxZoom: 16 })
+}
+
+map.on('locationfound', (e: L.LocationEvent) => {
+  if (!hasCenteredOnLocation) {
+    map.setView(e.latlng, 16)
+    hasCenteredOnLocation = true
+  } else if (!userPannedMap) {
+    map.panTo(e.latlng)
+  }
+
+  if (!locationMarker) {
+    locationMarker = L.circleMarker(e.latlng, {
+      radius: 8,
+      color: '#fff',
+      weight: 2,
+      fillColor: '#1a73e8',
+      fillOpacity: 1,
+    }).addTo(map)
+  } else {
+    locationMarker.setLatLng(e.latlng)
+  }
+
+  if (!locationAccuracyCircle) {
+    locationAccuracyCircle = L.circle(e.latlng, {
+      radius: e.accuracy,
+      color: '#1a73e8',
+      weight: 1,
+      fillColor: '#1a73e8',
+      fillOpacity: 0.12,
+    }).addTo(map)
+  } else {
+    locationAccuracyCircle.setLatLng(e.latlng)
+    locationAccuracyCircle.setRadius(e.accuracy)
+  }
+})
+
+map.on('locationerror', (e: L.ErrorEvent) => {
+  watchingLocation = false
+  document.querySelector('.locate-button')?.classList.remove('active')
+  alert(`Kon locatie niet bepalen: ${e.message}`)
+})
+
 const layerGroups: Record<CategoryKey, L.LayerGroup> = {
   water: L.layerGroup().addTo(map),
   binnen: L.layerGroup().addTo(map),
   park: L.layerGroup().addTo(map),
   zwembad: L.layerGroup().addTo(map),
+  buitenwater: L.layerGroup().addTo(map),
 }
 
-const counts: Record<CategoryKey, number> = { water: 0, binnen: 0, park: 0, zwembad: 0 }
+const counts: Record<CategoryKey, number> = { water: 0, binnen: 0, park: 0, zwembad: 0, buitenwater: 0 }
 
 // ---------- Statische locaties toevoegen ----------
 async function loadStaticLocationsToMap() {

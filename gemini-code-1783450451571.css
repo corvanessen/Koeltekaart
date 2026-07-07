@@ -1,0 +1,78 @@
+/* ==========================================
+   COLOR SCHEME 1: THE DESERT OASIS
+   ========================================== */
+.theme-desert-oasis {
+  --bg-main: #F4F1EA;      /* Sun-bleached warm off-white */
+  --bg-card: #FFFFFF;      /* Clean white for content blocks */
+  --text-main: #102937;    /* Deep charcoal teal for readability */
+  --text-muted: #4A6170;   /* Softer slate for subheaders */
+  --accent: #F9744B;       /* Burnt terracotta for CTAs */
+  --accent-hover: #E05D36; /* Slightly deeper orange for hover states */
+  --border: #E1D9CF;       /* Soft divider color */
+}
+
+/* ==========================================
+   COLOR SCHEME 2: HIGH-SUN MINIMALIST
+   ========================================== */
+.theme-high-sun {
+  --bg-main: #F7F5F0;      /* Soft sand */
+  --bg-card: #FFFFFF;      
+  --text-main: #1C2229;    /* Deep ink black */
+  --text-muted: #4A5560;   
+  --accent: #E6A15C;       /* Rich amber gold */
+  --accent-hover: #CE8A47; /* Warm honey golden brown */
+  --border: #E6E2DA;       
+}
+
+/* ==========================================
+   GLOBAL STYLES & LAYOUT BASE
+   ========================================== */
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 2rem;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ==========================================
+   HELPER UTILITY CLASSES FOR TESTING
+   ========================================== */
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  margin: 2rem auto;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+h1, h2, h3 {
+  color: var(--text-main);
+  margin-top: 0;
+}
+
+p {
+  color: var(--text-muted);
+}
+
+/* Modern, breezy button styling */
+.btn-primary {
+  display: inline-block;
+  background-color: var(--accent);
+  color: #FFFFFF;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-hover);
+}

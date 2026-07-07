@@ -198,5 +198,105 @@
     "lon": 4.482696898610025,
     "address_confirmed": true,
     "coords_verified": false
+  },
+  {
+    "cat": "buitenwater",
+    "name": "Waterspeelplaats Cronesteijn",
+    "addr": "Polderpark Cronesteyn, Leiden",
+    "desc": "Waterspeeltuin met pomp en zwemvijver. Sinds 2025 geen officiële zwemlocatie meer vanwege waterkwaliteit; vrij toegankelijk als speelplek.",
+    "lat": 52.1435844,
+    "lon": 4.4986876,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "buitenwater",
+    "name": "Kagerplassen ’t Joppe Merenwijk",
+    "addr": "Kagerplassen, Leiden",
+    "desc": "Officiële provinciale zwemlocatie aan de Kagerplassen, gratis toegankelijk.",
+    "lat": 52.187456653757,
+    "lon": 4.5186269509718,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "buitenwater",
+    "name": "Valkenburgse Meer",
+    "addr": "Valkenburgse Meer, Leiden/Valkenburg",
+    "desc": "Officiële provinciale zwemlocatie, gratis toegankelijk.",
+    "lat": 52.158698172192,
+    "lon": 4.4422182403121,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "buitenwater",
+    "name": "Kagerplassen ’t Joppe Westoever",
+    "addr": "Kagerplassen, Warmond",
+    "desc": "Officiële provinciale zwemlocatie aan de Kagerplassen, gratis toegankelijk.",
+    "lat": 52.194234752038,
+    "lon": 4.5082811244822,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "buitenwater",
+    "name": "Vadedoplas",
+    "addr": "Vadedoplas, Leiderdorp",
+    "desc": "Officiële provinciale zwemlocatie, gratis toegankelijk.",
+    "lat": 52.151533313746,
+    "lon": 4.543433933373,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "buitenwater",
+    "name": "Klinkenbergerplas Noordwestoever",
+    "addr": "Klinkenbergerplas, Oegstgeest",
+    "desc": "Officiële provinciale zwemlocatie, gratis toegankelijk.",
+    "lat": 52.199281599778,
+    "lon": 4.4858514044567,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "buitenwater",
+    "name": "Klinkenbergerplas Westoever",
+    "addr": "Klinkenbergerplas, Oegstgeest",
+    "desc": "Officiële provinciale zwemlocatie, gratis toegankelijk.",
+    "lat": 52.195080599626,
+    "lon": 4.4861140231735,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "buitenwater",
+    "name": "Vlietland Surfstrand Noordwestoever",
+    "addr": "Vlietland, Leidschendam",
+    "desc": "Officiële provinciale zwemlocatie, gratis toegankelijk.",
+    "lat": 52.121132282782,
+    "lon": 4.4592039019375,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "buitenwater",
+    "name": "Vlietland Speelvijver",
+    "addr": "Vlietland, Leidschendam",
+    "desc": "Officiële provinciale zwemlocatie, gratis toegankelijk.",
+    "lat": 52.120742966949,
+    "lon": 4.4683880479135,
+    "address_confirmed": false,
+    "coords_verified": false
+  },
+  {
+    "cat": "buitenwater",
+    "name": "Vlietland Badstrand Noordoostoever",
+    "addr": "Vlietland, Leidschendam",
+    "desc": "Officiële provinciale zwemlocatie, gratis toegankelijk.",
+    "lat": 52.119497735858,
+    "lon": 4.46571443175,
+    "address_confirmed": false,
+    "coords_verified": false
   }
 ]
