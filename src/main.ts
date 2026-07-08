@@ -6,7 +6,7 @@ import L from 'leaflet'
 // Elke categorie heeft een eigen SVG-icoon (uit de "glyphs-poly" iconset,
 // MIT-licentie, via @iconify-json/glyphs-poly), in dezelfde divIcon-opzet
 // als voorheen met emoji's.
-type CategoryKey = 'water' | 'binnen' | 'park' | 'zwembad' | 'buitenwater'
+type CategoryKey = 'water' | 'binnen' | 'park' | 'zwembad' | 'buitenwater' | 'temperatuur'
 
 const CATEGORIES: Record<CategoryKey, { label: string; icon: string }> = {
   water: { label: 'Drinkwaterpunt', icon: `${import.meta.env.BASE_URL}icons/water.svg` },
@@ -14,6 +14,7 @@ const CATEGORIES: Record<CategoryKey, { label: string; icon: string }> = {
   park: { label: 'Park / schaduw', icon: `${import.meta.env.BASE_URL}icons/park.svg` },
   zwembad: { label: 'Zwembad (betaald)', icon: `${import.meta.env.BASE_URL}icons/zwembad.svg` },
   buitenwater: { label: 'Buitenzwemwater (gratis)', icon: `${import.meta.env.BASE_URL}icons/buitenwater.svg` },
+  temperatuur: { label: 'Temperatuur (live)', icon: `${import.meta.env.BASE_URL}icons/temperatuur.svg` },
 }
 
 function makeIcon(iconUrl: string) {
@@ -80,18 +81,34 @@ app.innerHTML = `
       <div class="weather-badge" id="weatherBadge">Weer wordt geladen…</div>
     </div>
   </header>
-  <div class="layout">
+  <div class="layout" id="layout">
     <aside class="sidebar" id="sidebar">
-      <h2>Categorieën</h2>
-      <div id="filters"></div>
-      <p class="legend-note">
-        Gegevens verzameld uit gemeentelijke berichtgeving, drinkwaterkaart.nl,
-        OpenBomenKaart en OpenStreetMap. Locaties en openingstijden kunnen wijzigen.
-      </p>
+      <div class="sidebar-inner">
+        <h2>Categorieën</h2>
+        <div id="filters"></div>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-expanded="true" aria-controls="sidebar" aria-label="Verberg categorieën">
+        <span class="chevron" aria-hidden="true">‹</span>
+      </button>
     </aside>
     <div id="map"></div>
+    <p class="legend-note">
+      Gegevens verzameld uit gemeentelijke berichtgeving, drinkwaterkaart.nl,
+      OpenBomenKaart, OpenStreetMap en sensorleiden.nl (live temperatuursensoren).
+      Locaties, openingstijden en metingen kunnen wijzigen.
+    </p>
   </div>
 `
+
+// ---------- Zijbalk in-/uitklappen ----------
+const layoutEl = document.getElementById('layout')
+const sidebarToggle = document.getElementById('sidebarToggle')
+
+sidebarToggle?.addEventListener('click', () => {
+  const collapsed = layoutEl?.classList.toggle('sidebar-collapsed') ?? false
+  sidebarToggle.setAttribute('aria-expanded', String(!collapsed))
+  sidebarToggle.setAttribute('aria-label', collapsed ? 'Toon categorieën' : 'Verberg categorieën')
+})
 
 // ---------- Weather (Open-Meteo, geen API-key nodig) ----------
 async function loadWeather() {
@@ -99,12 +116,13 @@ async function loadWeather() {
   if (!badge) return
   try {
     const res = await fetch(
-      'https://api.open-meteo.com/v1/forecast?latitude=52.16&longitude=4.49&current=temperature_2m,apparent_temperature&timezone=Europe%2FAmsterdam',
+      'https://api.open-meteo.com/v1/forecast?latitude=52.16&longitude=4.49&current=temperature_2m,apparent_temperature&daily=temperature_2m_max&timezone=Europe%2FAmsterdam',
     )
     const data = await res.json()
     const t = Math.round(data.current.temperature_2m)
     const feels = Math.round(data.current.apparent_temperature)
-    badge.innerHTML = `<strong>${t}°C</strong>&nbsp;· voelt als ${feels}°C`
+    const max = Math.round(data.daily.temperature_2m_max[0])
+    badge.innerHTML = `<strong>${t}°C</strong>&nbsp;· voelt als ${feels}°C&nbsp;· max ${max}°C`
   } catch (error) {
     badge.textContent = 'Weer kon niet worden geladen'
     console.error(error)
@@ -237,9 +255,10 @@ const layerGroups: Record<CategoryKey, L.LayerGroup> = {
   park: L.layerGroup().addTo(map),
   zwembad: L.layerGroup().addTo(map),
   buitenwater: L.layerGroup().addTo(map),
+  temperatuur: L.layerGroup().addTo(map),
 }
 
-const counts: Record<CategoryKey, number> = { water: 0, binnen: 0, park: 0, zwembad: 0, buitenwater: 0 }
+const counts: Record<CategoryKey, number> = { water: 0, binnen: 0, park: 0, zwembad: 0, buitenwater: 0, temperatuur: 0 }
 
 // ---------- Statische locaties toevoegen ----------
 async function loadStaticLocationsToMap() {
@@ -305,7 +324,7 @@ const municipalityBounds = {
   maxLon: 4.55,
 }
 
-function isInLeiden(point: WaterPoint) {
+function isInLeiden(point: { lat: number; lon: number }) {
   return (
     point.lat >= municipalityBounds.minLat &&
     point.lat <= municipalityBounds.maxLat &&
@@ -354,6 +373,126 @@ async function loadWaterPoints() {
 }
 
 void loadWaterPoints()
+
+// ---------- Live temperatuurmetingen (sensorleiden.nl) ----------
+// sensorleiden.nl ontsluit het "Sensor Leiden" citizen-science netwerk
+// (Sensor.Community-achtige BME280-sensoren) als open JSON, geen API-key nodig.
+// KNMI WOW-NL en Weather Underground bleken geen bruikbare gratis/directe
+// API voor Leiden te hebben; Meet je Stad! werkt technisch maar heeft momenteel
+// geen actieve sensoren in Leiden.
+const TEMP_API_URL = 'https://www.sensorleiden.nl/api/data/now'
+const TEMP_REFRESH_MS = 5 * 60 * 1000
+// Kapotte/losgekoppelde BME280-sensoren rapporteren soms extreme uitschieters
+// (bv. -140°C); die filteren we hier weg als onrealistisch voor buitenlucht.
+const TEMP_MIN_PLAUSIBLE = -15
+const TEMP_MAX_PLAUSIBLE = 45
+
+type SensorLeidenReading = {
+  location_id: number
+  value_type: string
+  value: string
+  updated_at?: string
+  location?: { lat: string; long: string }
+}
+
+type TempPoint = {
+  lat: number
+  lon: number
+  tempC: number
+  humidity: number | null
+  updatedAt: string | null
+}
+
+function tempColor(tempC: number): string {
+  const stops: [number, [number, number, number]][] = [
+    [12, [47, 128, 237]], // koel: blauw
+    [22, [242, 153, 74]], // aangenaam: oranje
+    [32, [235, 87, 87]], // warm: rood
+  ]
+
+  const clamped = Math.max(stops[0][0], Math.min(stops[stops.length - 1][0], tempC))
+  const upperIndex = stops.findIndex(([t]) => t >= clamped)
+  const [t1, c1] = stops[Math.max(0, upperIndex - 1)]
+  const [t2, c2] = stops[upperIndex]
+  const ratio = t2 === t1 ? 0 : (clamped - t1) / (t2 - t1)
+  const [r, g, b] = c1.map((channel, i) => Math.round(channel + (c2[i] - channel) * ratio))
+
+  return `rgb(${r}, ${g}, ${b})`
+}
+
+function makeTempIcon(tempC: number) {
+  return L.divIcon({
+    html: `<span class="temp-badge" style="background:${tempColor(tempC)}">${Math.round(tempC)}°</span>`,
+    className: 'temp-badge-marker',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  })
+}
+
+async function loadTemperatureLayer() {
+  try {
+    const response = await fetch(TEMP_API_URL)
+
+    if (!response.ok) {
+      throw new Error(`Kon temperatuurmetingen niet laden: ${response.status}`)
+    }
+
+    const data = (await response.json()) as { sensors: SensorLeidenReading[] }
+    const sensors = data.sensors ?? []
+
+    const humidityByLocation = new Map<number, number>()
+    sensors.forEach((sensor) => {
+      if (sensor.value_type === 'humidity') {
+        const humidity = Number.parseFloat(sensor.value)
+        if (Number.isFinite(humidity)) {
+          humidityByLocation.set(sensor.location_id, humidity)
+        }
+      }
+    })
+
+    const points: TempPoint[] = sensors
+      .filter((sensor) => sensor.value_type === 'temperature')
+      .map((sensor) => ({
+        lat: Number.parseFloat(sensor.location?.lat ?? ''),
+        lon: Number.parseFloat(sensor.location?.long ?? ''),
+        tempC: Number.parseFloat(sensor.value),
+        humidity: humidityByLocation.get(sensor.location_id) ?? null,
+        updatedAt: sensor.updated_at ?? null,
+      }))
+      .filter(
+        (point) =>
+          Number.isFinite(point.lat) &&
+          Number.isFinite(point.lon) &&
+          isInLeiden(point) &&
+          Number.isFinite(point.tempC) &&
+          point.tempC > TEMP_MIN_PLAUSIBLE &&
+          point.tempC < TEMP_MAX_PLAUSIBLE,
+      )
+
+    layerGroups.temperatuur.clearLayers()
+    counts.temperatuur = points.length
+    renderFilters()
+
+    points.forEach((point) => {
+      const time = point.updatedAt
+        ? new Date(point.updatedAt).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
+        : null
+      const humidityText = point.humidity !== null ? ` · ${Math.round(point.humidity)}% luchtvochtigheid` : ''
+      const timeText = time ? ` · bijgewerkt ${time}` : ''
+      const body = `${point.tempC.toFixed(1)}°C${humidityText}${timeText}`
+      const content = buildPopupContent('Temperatuursensor', body)
+
+      L.marker([point.lat, point.lon], { icon: makeTempIcon(point.tempC) })
+        .bindPopup(content, { autoPan: true })
+        .addTo(layerGroups.temperatuur)
+    })
+  } catch (error) {
+    console.error('Kon temperatuurmetingen niet laden', error)
+  }
+}
+
+void loadTemperatureLayer()
+setInterval(loadTemperatureLayer, TEMP_REFRESH_MS)
 
 // ---------- Zijbalk met filters per categorie ----------
 function renderFilters() {
