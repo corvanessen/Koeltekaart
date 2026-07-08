@@ -19,10 +19,11 @@ const CATEGORIES: Record<CategoryKey, { label: string; icon: string }> = {
 
 function makeIcon(iconUrl: string) {
   return L.divIcon({
-    html: `<span class="map-drop-icon"><img src="${iconUrl}" width="18" height="18" alt="" /></span>`,
+    html: `<span class="map-drop-icon"><img src="${iconUrl}" width="36" height="36" alt="" /></span>`,
     className: 'map-drop-marker',
-    iconSize: [24, 24],
-    iconAnchor: [12, 24],
+    iconSize: [48, 48],
+    iconAnchor: [24, 24],
+    popupAnchor: [0, -18],
   })
 }
 
@@ -438,6 +439,7 @@ function makeTempIcon(tempC: number) {
     className: 'temp-badge-marker',
     iconSize: [32, 32],
     iconAnchor: [16, 16],
+    popupAnchor: [0, -16],
   })
 }
 

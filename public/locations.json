@@ -4,10 +4,10 @@
     "name": "Stadsfoyer Stadhuis",
     "addr": "Stadhuisplein 1, Leiden",
     "desc": "Stadsdeel Midden. Benedenverdieping vrij toegankelijk.",
-    "lat": 52.15985,
-    "lon": 4.4906,
+    "lat": 52.1581926,
+    "lon": 4.4912151,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": true
   },
   {
     "cat": "binnen",

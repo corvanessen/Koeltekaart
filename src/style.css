@@ -249,6 +249,9 @@ body {
 }
 
 .map-drop-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
 }
