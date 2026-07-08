@@ -4,7 +4,7 @@
   --text-main: #102937;
   --text-muted: #4A6170;
   --accent: #F9744B;
-  --accent-hover: #E05D36;
+  --accent-hover: #A8431F;
   --border: #E1D9CF;
 
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -59,7 +59,7 @@ body {
 .weather-badge {
   flex-shrink: 0;
   background: var(--accent);
-  color: var(--bg-card);
+  color: var(--text-main);
   border: 1px solid var(--accent);
   border-radius: 999px;
   padding: 0.4rem 0.9rem;
@@ -230,7 +230,7 @@ body {
 }
 
 .locate-button.active {
-  color: var(--accent);
+  color: var(--accent-hover);
 }
 
 .map-drop-marker {

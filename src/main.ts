@@ -78,10 +78,10 @@ app.innerHTML = `
         <h1>Koeltekaart Leiden</h1>
         <p>Koele plekken bij hitte, in en om Leiden.</p>
       </div>
-      <div class="weather-badge" id="weatherBadge">Weer wordt geladen…</div>
+      <div class="weather-badge" id="weatherBadge" aria-live="polite">Weer wordt geladen…</div>
     </div>
   </header>
-  <div class="layout" id="layout">
+  <main class="layout" id="layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-inner">
         <h2>Categorieën</h2>
@@ -97,7 +97,7 @@ app.innerHTML = `
       OpenBomenKaart, OpenStreetMap en sensorleiden.nl (live temperatuursensoren).
       Locaties, openingstijden en metingen kunnen wijzigen.
     </p>
-  </div>
+  </main>
 `
 
 // ---------- Zijbalk in-/uitklappen ----------
@@ -178,6 +178,14 @@ const LocateControl = L.Control.extend({
     L.DomEvent.on(button, 'click', (e) => {
       L.DomEvent.preventDefault(e)
       toggleLocate(button)
+    })
+    // role="button" only makes Enter work natively on an <a>; Space needs a manual handler.
+    L.DomEvent.on(button, 'keydown', (e) => {
+      const key = (e as KeyboardEvent).key
+      if (key === ' ' || key === 'Spacebar') {
+        L.DomEvent.preventDefault(e)
+        toggleLocate(button)
+      }
     })
 
     return container
@@ -269,9 +277,10 @@ async function loadStaticLocationsToMap() {
       counts[loc.cat]++
       const body = `${loc.addr}${loc.desc ? ' — ' + loc.desc : ''}`
       const content = buildPopupContent(loc.name, body)
-      L.marker([loc.lat, loc.lon], { icon: makeIcon(CATEGORIES[loc.cat].icon) })
+      const marker = L.marker([loc.lat, loc.lon], { icon: makeIcon(CATEGORIES[loc.cat].icon) })
         .bindPopup(content, { autoPan: true })
         .addTo(layerGroups[loc.cat])
+      marker.getElement()?.setAttribute('aria-label', `${CATEGORIES[loc.cat].label}: ${loc.name}`)
     })
 
     renderFilters()
@@ -363,9 +372,10 @@ async function loadWaterPoints() {
       const commentText = (point.comment || 'Drinkwaterpunt').replace(/\s+/g, ' ').trim()
       const content = buildPopupContent(point.name, commentText)
 
-      L.marker([point.lat, point.lon], { icon: makeIcon(CATEGORIES.water.icon) })
+      const marker = L.marker([point.lat, point.lon], { icon: makeIcon(CATEGORIES.water.icon) })
         .bindPopup(content, { autoPan: true })
         .addTo(layerGroups.water)
+      marker.getElement()?.setAttribute('aria-label', `${CATEGORIES.water.label}: ${point.name}`)
     })
   } catch (error) {
     console.error('Kon drinkwaterpunten niet laden', error)
@@ -482,9 +492,12 @@ async function loadTemperatureLayer() {
       const body = `${point.tempC.toFixed(1)}°C${humidityText}${timeText}`
       const content = buildPopupContent('Temperatuursensor', body)
 
-      L.marker([point.lat, point.lon], { icon: makeTempIcon(point.tempC) })
+      const marker = L.marker([point.lat, point.lon], { icon: makeTempIcon(point.tempC) })
         .bindPopup(content, { autoPan: true })
         .addTo(layerGroups.temperatuur)
+      marker
+        .getElement()
+        ?.setAttribute('aria-label', `Temperatuursensor: ${point.tempC.toFixed(1)}°C`)
     })
   } catch (error) {
     console.error('Kon temperatuurmetingen niet laden', error)
@@ -495,29 +508,50 @@ void loadTemperatureLayer()
 setInterval(loadTemperatureLayer, TEMP_REFRESH_MS)
 
 // ---------- Zijbalk met filters per categorie ----------
+// De rijen worden één keer aangemaakt en daarna alleen bijgewerkt (i.p.v.
+// innerHTML te vervangen), anders verliest een toetsenbordgebruiker de focus
+// zodra de 5-minuten temperatuurrefresh de tellers ververst.
+const filterCountEls = new Map<CategoryKey, HTMLSpanElement>()
+
 function renderFilters() {
   const filtersEl = document.getElementById('filters')
   if (!filtersEl) return
 
-  const checkedState: Record<string, boolean> = {}
-  filtersEl.querySelectorAll<HTMLInputElement>('input[type=checkbox]').forEach((input) => {
-    checkedState[input.dataset.cat ?? ''] = input.checked
-  })
+  if (filterCountEls.size === 0) {
+    ;(Object.keys(CATEGORIES) as CategoryKey[]).forEach((key) => {
+      const cfg = CATEGORIES[key]
+      const row = document.createElement('label')
+      row.className = 'filter-row'
 
-  filtersEl.innerHTML = ''
-  ;(Object.keys(CATEGORIES) as CategoryKey[]).forEach((key) => {
-    const cfg = CATEGORIES[key]
-    const row = document.createElement('label')
-    row.className = 'filter-row'
-    const checked = checkedState[key] ?? true
-    row.innerHTML = `
-      <input type="checkbox" ${checked ? 'checked' : ''} data-cat="${key}">
-      <img class="filter-emoji" src="${cfg.icon}" width="18" height="18" alt="" />
-      <span class="filter-label">${cfg.label}</span>
-      <span class="filter-count">${counts[key]}</span>
-    `
-    filtersEl.appendChild(row)
-  })
+      const input = document.createElement('input')
+      input.type = 'checkbox'
+      input.checked = true
+      input.dataset.cat = key
+
+      const icon = document.createElement('img')
+      icon.className = 'filter-emoji'
+      icon.src = cfg.icon
+      icon.width = 18
+      icon.height = 18
+      icon.alt = ''
+
+      const label = document.createElement('span')
+      label.className = 'filter-label'
+      label.textContent = cfg.label
+
+      const count = document.createElement('span')
+      count.className = 'filter-count'
+      count.textContent = String(counts[key])
+
+      row.append(input, icon, label, count)
+      filtersEl.appendChild(row)
+      filterCountEls.set(key, count)
+    })
+  } else {
+    filterCountEls.forEach((count, key) => {
+      count.textContent = String(counts[key])
+    })
+  }
 }
 
 renderFilters()
