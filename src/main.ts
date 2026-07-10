@@ -1,20 +1,18 @@
-import './style.css'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
+import { CATEGORY_LABELS, type CategoryKey } from './categoryLabels'
 
 // ---------- Categories ----------
 // Elke categorie heeft een eigen SVG-icoon (uit de "glyphs-poly" iconset,
 // MIT-licentie, via @iconify-json/glyphs-poly), in dezelfde divIcon-opzet
 // als voorheen met emoji's.
-type CategoryKey = 'water' | 'binnen' | 'park' | 'zwembad' | 'buitenwater' | 'temperatuur'
-
 const CATEGORIES: Record<CategoryKey, { label: string; icon: string }> = {
-  water: { label: 'Drinkwaterpunt', icon: `${import.meta.env.BASE_URL}icons/water.svg` },
-  binnen: { label: 'Koelteplek binnen', icon: `${import.meta.env.BASE_URL}icons/binnen.svg` },
-  park: { label: 'Park / schaduw', icon: `${import.meta.env.BASE_URL}icons/park.svg` },
-  zwembad: { label: 'Zwembad (betaald)', icon: `${import.meta.env.BASE_URL}icons/zwembad.svg` },
-  buitenwater: { label: 'Buitenzwemwater (gratis)', icon: `${import.meta.env.BASE_URL}icons/buitenwater.svg` },
-  temperatuur: { label: 'Temperatuur (live)', icon: `${import.meta.env.BASE_URL}icons/temperatuur.svg` },
+  water: { label: CATEGORY_LABELS.water, icon: `${import.meta.env.BASE_URL}icons/water.svg` },
+  binnen: { label: CATEGORY_LABELS.binnen, icon: `${import.meta.env.BASE_URL}icons/binnen.svg` },
+  park: { label: CATEGORY_LABELS.park, icon: `${import.meta.env.BASE_URL}icons/park.svg` },
+  zwembad: { label: CATEGORY_LABELS.zwembad, icon: `${import.meta.env.BASE_URL}icons/zwembad.svg` },
+  buitenwater: { label: CATEGORY_LABELS.buitenwater, icon: `${import.meta.env.BASE_URL}icons/buitenwater.svg` },
+  temperatuur: { label: CATEGORY_LABELS.temperatuur, icon: `${import.meta.env.BASE_URL}icons/temperatuur.svg` },
 }
 
 function makeIcon(iconUrl: string) {
@@ -59,59 +57,15 @@ async function loadStaticLocations() {
 }
 
 // ---------- App shell ----------
+// De header, sidebar-shell, #map en legend-note staan als statische HTML in
+// index.html (voor SEO/crawlability); main.ts vult ze alleen aan (filters,
+// weerbadge, kaartmarkers) in plaats van de shell zelf op te bouwen.
 type WaterPoint = {
   name: string
   lat: number
   lon: number
   comment: string
 }
-
-const app = document.querySelector<HTMLDivElement>('#app')
-
-if (!app) {
-  throw new Error('App container not found')
-}
-
-app.innerHTML = `
-  <header class="page-header">
-    <div class="header-top">
-      <div>
-        <h1>Koeltekaart Leiden</h1>
-        <p>Koele plekken bij hitte, in en om Leiden.</p>
-      </div>
-      <div class="weather-badge" id="weatherBadge" aria-live="polite">Weer wordt geladen…</div>
-    </div>
-  </header>
-  <main class="layout" id="layout">
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-inner">
-        <h2>Categorieën</h2>
-        <div id="filters"></div>
-      </div>
-      <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-expanded="true" aria-controls="sidebar" aria-label="Verberg categorieën">
-        <span class="chevron" aria-hidden="true">‹</span>
-      </button>
-    </aside>
-    <div id="map"></div>
-    <p class="legend-note">
-      Gegevens verzameld uit gemeentelijke berichtgeving, drinkwaterkaart.nl,
-      OpenBomenKaart, OpenStreetMap en sensorleiden.nl (live temperatuursensoren).
-      Locaties, openingstijden en metingen kunnen wijzigen.
-      <a class="legend-github" href="https://github.com/corvanessen/Koeltekaart" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository" title="GitHub repository">
-        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
-          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
-            0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
-            -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
-            .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
-            -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0
-            1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82
-            1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
-            0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
-        </svg>
-      </a>
-    </p>
-  </main>
-`
 
 // ---------- Zijbalk in-/uitklappen ----------
 const layoutEl = document.getElementById('layout')
