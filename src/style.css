@@ -68,6 +68,23 @@ body {
   white-space: nowrap;
 }
 
+.intro-details {
+  margin-top: 0.5rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.intro-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--bg-card);
+}
+
+.intro-details p {
+  margin: 0.5rem 0 0;
+  max-width: 60ch;
+  color: rgba(255, 255, 255, 0.75);
+}
+
 .layout {
   flex: 1;
   display: grid;
@@ -375,5 +392,48 @@ body {
 
   .layout.sidebar-collapsed .legend-note {
     visibility: visible;
+  }
+}
+
+#location-index {
+  padding: 0.75rem 1.1rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-main);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+#location-index summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent-hover);
+}
+
+#location-index-content {
+  margin-top: 0.6rem;
+  columns: 2;
+  column-gap: 2rem;
+}
+
+#location-index-content h3 {
+  margin: 0.6rem 0 0.3rem;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  break-after: avoid;
+}
+
+#location-index-content ul {
+  margin: 0 0 0.4rem;
+  padding-left: 1.1rem;
+}
+
+#location-index-content li {
+  margin-bottom: 0.15rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 720px) {
+  #location-index-content {
+    columns: 1;
   }
 }
