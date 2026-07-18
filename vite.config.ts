@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { defineConfig, type Plugin } from 'vite'
 import { CATEGORY_LABELS, type CategoryKey } from './src/categoryLabels'
+import type { Locale } from './src/locale'
 
 type StaticLocation = {
   cat: CategoryKey
@@ -24,7 +25,10 @@ function escapeHtml(value: string): string {
 function locationIndexPlugin(): Plugin {
   return {
     name: 'location-index-html',
-    transformIndexHtml(html) {
+    transformIndexHtml(html, ctx) {
+      const locale: Locale = ctx.path.startsWith('/en/') ? 'en' : 'nl'
+      const labels = CATEGORY_LABELS[locale]
+
       const locations = JSON.parse(
         readFileSync(resolve(process.cwd(), 'public/locations.json'), 'utf-8'),
       ) as StaticLocation[]
@@ -36,7 +40,7 @@ function locationIndexPlugin(): Plugin {
         byCategory.set(loc.cat, list)
       })
 
-      const sections = (Object.keys(CATEGORY_LABELS) as CategoryKey[])
+      const sections = (Object.keys(labels) as CategoryKey[])
         .filter((cat) => byCategory.has(cat))
         .map((cat) => {
           const items = byCategory
@@ -49,7 +53,7 @@ function locationIndexPlugin(): Plugin {
             )
             .join('')
 
-          return `<h3>${escapeHtml(CATEGORY_LABELS[cat])}</h3><ul>${items}</ul>`
+          return `<h3>${escapeHtml(labels[cat])}</h3><ul>${items}</ul>`
         })
         .join('')
 
@@ -61,4 +65,12 @@ function locationIndexPlugin(): Plugin {
 export default defineConfig({
   base: '/Koeltekaart/',
   plugins: [locationIndexPlugin()],
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(process.cwd(), 'index.html'),
+        en: resolve(process.cwd(), 'en/index.html'),
+      },
+    },
+  },
 })
