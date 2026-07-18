@@ -1,46 +1,46 @@
 <!doctype html>
-<html lang="nl">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
     <link rel="apple-touch-icon" sizes="180x180" href="/Koeltekaart/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#102937" />
     <link rel="stylesheet" href="/src/style.css" />
 
-    <title>Koeltekaart Leiden – koele plekken, water en schaduw bij hitte</title>
+    <title>Koeltekaart Leiden – cool spots, water and shade during heat</title>
     <meta
       name="description"
-      content="Vind koele plekken in Leiden bij hitte: drinkwaterpunten, schaduwrijke parken, gratis zwemwater, zwembaden en koele binnenlocaties op een interactieve kaart."
+      content="Find cool spots in Leiden during hot weather: drinking water points, shaded parks, free swimming water, swimming pools and cool indoor locations on an interactive map."
     />
-    <link rel="canonical" href="https://corvanessen.github.io/Koeltekaart/" />
+    <link rel="canonical" href="https://corvanessen.github.io/Koeltekaart/en/" />
     <link rel="alternate" hreflang="nl" href="https://corvanessen.github.io/Koeltekaart/" />
     <link rel="alternate" hreflang="en" href="https://corvanessen.github.io/Koeltekaart/en/" />
     <link rel="alternate" hreflang="x-default" href="https://corvanessen.github.io/Koeltekaart/" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Koeltekaart Leiden" />
-    <meta property="og:locale" content="nl_NL" />
-    <meta property="og:locale:alternate" content="en_US" />
-    <meta property="og:url" content="https://corvanessen.github.io/Koeltekaart/" />
-    <meta property="og:title" content="Koeltekaart Leiden – koele plekken bij hitte" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="nl_NL" />
+    <meta property="og:url" content="https://corvanessen.github.io/Koeltekaart/en/" />
+    <meta property="og:title" content="Koeltekaart Leiden – cool spots during heat" />
     <meta
       property="og:description"
-      content="Vind koele plekken in Leiden bij hitte: drinkwaterpunten, schaduwrijke parken, gratis zwemwater, zwembaden en koele binnenlocaties op een interactieve kaart."
+      content="Find cool spots in Leiden during hot weather: drinking water points, shaded parks, free swimming water, swimming pools and cool indoor locations on an interactive map."
     />
     <meta property="og:image" content="https://corvanessen.github.io/Koeltekaart/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Screenshot van de interactieve koeltekaart van Leiden met markers voor drinkwater, parken en zwemwater"
+      content="Screenshot of the interactive Koeltekaart of Leiden with markers for drinking water, parks and swimming water"
     />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Koeltekaart Leiden – koele plekken bij hitte" />
+    <meta name="twitter:title" content="Koeltekaart Leiden – cool spots during heat" />
     <meta
       name="twitter:description"
-      content="Vind koele plekken in Leiden bij hitte: drinkwaterpunten, schaduwrijke parken, gratis zwemwater, zwembaden en koele binnenlocaties op een interactieve kaart."
+      content="Find cool spots in Leiden during hot weather: drinking water points, shaded parks, free swimming water, swimming pools and cool indoor locations on an interactive map."
     />
     <meta name="twitter:image" content="https://corvanessen.github.io/Koeltekaart/og-image.png" />
 
@@ -48,20 +48,18 @@
     <link rel="preconnect" href="https://www.sensorleiden.nl" />
     <link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossorigin />
 
-    <!-- <meta name="google-site-verification" content="TODO" /> -->
-
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "Koeltekaart Leiden",
         "alternateName": "Koeltekaart",
-        "url": "https://corvanessen.github.io/Koeltekaart/",
-        "description": "Interactieve kaart met koelteplekken in Leiden: drinkwaterpunten, schaduwrijke parken, gratis zwemwater, zwembaden, koele binnenlocaties en live temperatuurmetingen.",
+        "url": "https://corvanessen.github.io/Koeltekaart/en/",
+        "description": "Interactive map of cool spots in Leiden: drinking water points, shaded parks, free swimming water, swimming pools, cool indoor locations and live temperature readings.",
         "applicationCategory": "UtilitiesApplication",
         "operatingSystem": "Any (webbrowser)",
         "browserRequirements": "Requires JavaScript",
-        "inLanguage": "nl",
+        "inLanguage": "en",
         "isAccessibleForFree": true,
         "offers": {
           "@type": "Offer",
@@ -76,7 +74,7 @@
             "name": "Zuid-Holland"
           }
         },
-        "keywords": "koelteplek Leiden, drinkwaterpunt Leiden, gratis zwemwater Leiden, zwembad Leiden, afkoelen bij hitte"
+        "keywords": "cool spot Leiden, drinking water point Leiden, free swimming water Leiden, swimming pool Leiden, cooling down during heat"
       }
     </script>
   </head>
@@ -86,39 +84,40 @@
         <div class="header-top">
           <div>
             <h1>Koeltekaart Leiden</h1>
-            <p>Koele plekken bij hitte, in en om Leiden.</p>
+            <p>Cool spots during heat, in and around Leiden.</p>
           </div>
           <div class="header-top-actions">
-            <div class="weather-badge" id="weatherBadge" aria-live="polite">Weer wordt geladen…</div>
-            <a class="lang-switch" href="/Koeltekaart/en/" hreflang="en" lang="en">EN</a>
+            <div class="weather-badge" id="weatherBadge" aria-live="polite">Loading weather…</div>
+            <a class="lang-switch" href="/Koeltekaart/" hreflang="nl" lang="nl">NL</a>
           </div>
         </div>
         <details class="intro-details">
-          <summary>Over deze koeltekaart</summary>
+          <summary>About this map</summary>
           <p>
-            Koeltekaart Leiden is een interactieve kaart met koele plekken in Leiden bij warm weer.
-            Je vindt er drinkwaterpunten, schaduwrijke parken, gratis buitenzwemwater, betaalde
-            zwembaden en koele binnenlocaties zoals bibliotheken en buurthuizen. Ook toont de kaart
-            live temperatuurmetingen via sensorleiden.nl en de actuele weersverwachting voor Leiden.
-            Filter op categorie in de zijbalk om snel een koele plek bij jou in de buurt te vinden.
+            Koeltekaart Leiden is an interactive map of cool spots in Leiden during hot weather.
+            You'll find drinking water points, shaded parks, free outdoor swimming water, paid
+            swimming pools and cool indoor locations such as libraries and community centres. The
+            map also shows live temperature readings via sensorleiden.nl and the current weather
+            forecast for Leiden. Filter by category in the sidebar to quickly find a cool spot
+            near you.
           </p>
         </details>
       </header>
       <main class="layout" id="layout">
         <aside class="sidebar" id="sidebar">
           <div class="sidebar-inner">
-            <h2>Categorieën</h2>
+            <h2>Categories</h2>
             <div id="filters"></div>
           </div>
-          <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-expanded="true" aria-controls="sidebar" aria-label="Verberg categorieën">
+          <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-expanded="true" aria-controls="sidebar" aria-label="Hide categories">
             <span class="chevron" aria-hidden="true">‹</span>
           </button>
         </aside>
         <div id="map"></div>
         <p class="legend-note">
-          Gegevens verzameld uit gemeentelijke berichtgeving, drinkwaterkaart.nl,
-          OpenBomenKaart, OpenStreetMap en sensorleiden.nl (live temperatuursensoren).
-          Locaties, openingstijden en metingen kunnen wijzigen.
+          Data collected from municipal sources, drinkwaterkaart.nl,
+          OpenBomenKaart, OpenStreetMap and sensorleiden.nl (live temperature sensors).
+          Locations, opening hours and readings may change.
           <a class="legend-github" href="https://github.com/corvanessen/Koeltekaart" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository" title="GitHub repository">
             <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
               <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
@@ -135,7 +134,7 @@
       </main>
     </div>
     <details id="location-index">
-      <summary>Alle koelteplekken op deze kaart</summary>
+      <summary>All cool spots on this map</summary>
       <div id="location-index-content"></div>
     </details>
     <script type="module" src="/src/main.ts"></script>

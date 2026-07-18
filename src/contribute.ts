@@ -1,5 +1,10 @@
 import L from 'leaflet'
 import { CATEGORY_LABELS } from './categoryLabels'
+import { getLocale } from './locale'
+import { STRINGS } from './i18n'
+
+const locale = getLocale()
+const s = STRINGS[locale]
 
 export type EditableCategoryKey = 'binnen' | 'park' | 'zwembad' | 'buitenwater'
 
@@ -46,7 +51,7 @@ function escapeAttr(value: string): string {
 }
 
 export function buildSuggestEditLink(subject: ContributionSubject): string {
-  return `<button type="button" class="suggest-edit-link" data-id="${escapeAttr(subject.id)}" data-cat="${escapeAttr(subject.cat)}" data-name="${escapeAttr(subject.name)}" data-addr="${escapeAttr(subject.addr)}" data-desc="${escapeAttr(subject.desc)}" data-lat="${subject.lat}" data-lon="${subject.lon}">Wijziging voorstellen</button>`
+  return `<button type="button" class="suggest-edit-link" data-id="${escapeAttr(subject.id)}" data-cat="${escapeAttr(subject.cat)}" data-name="${escapeAttr(subject.name)}" data-addr="${escapeAttr(subject.addr)}" data-desc="${escapeAttr(subject.desc)}" data-lat="${subject.lat}" data-lon="${subject.lon}">${s.suggestEdit}</button>`
 }
 
 function readSuggestEditSubject(button: HTMLElement): ContributionSubject | null {
@@ -71,12 +76,12 @@ function buildContributionForm(mode: 'add' | 'edit', latlng: L.LatLng, subject?:
 
   const heading = document.createElement('h3')
   heading.className = 'contribute-heading'
-  heading.textContent = mode === 'edit' ? `Wijziging voorstellen: ${subject?.name}` : 'Locatie toevoegen'
+  heading.textContent = mode === 'edit' ? s.suggestEditHeading(subject?.name ?? '') : s.addLocationHeading
   form.appendChild(heading)
 
   const nameLabel = document.createElement('label')
   nameLabel.className = 'contribute-label'
-  nameLabel.textContent = 'Naam'
+  nameLabel.textContent = s.fieldName
   const nameInput = document.createElement('input')
   nameInput.type = 'text'
   nameInput.required = true
@@ -87,12 +92,12 @@ function buildContributionForm(mode: 'add' | 'edit', latlng: L.LatLng, subject?:
 
   const catLabel = document.createElement('label')
   catLabel.className = 'contribute-label'
-  catLabel.textContent = 'Categorie'
+  catLabel.textContent = s.fieldCategory
   const catSelect = document.createElement('select')
   EDITABLE_CATEGORIES.forEach((key) => {
     const option = document.createElement('option')
     option.value = key
-    option.textContent = CATEGORY_LABELS[key]
+    option.textContent = CATEGORY_LABELS[locale][key]
     catSelect.appendChild(option)
   })
   catSelect.value = subject?.cat ?? EDITABLE_CATEGORIES[0]
@@ -101,7 +106,7 @@ function buildContributionForm(mode: 'add' | 'edit', latlng: L.LatLng, subject?:
 
   const addrLabel = document.createElement('label')
   addrLabel.className = 'contribute-label'
-  addrLabel.textContent = 'Adres'
+  addrLabel.textContent = s.fieldAddress
   const addrInput = document.createElement('input')
   addrInput.type = 'text'
   addrInput.maxLength = ADDR_MAX
@@ -111,7 +116,7 @@ function buildContributionForm(mode: 'add' | 'edit', latlng: L.LatLng, subject?:
 
   const descLabel = document.createElement('label')
   descLabel.className = 'contribute-label'
-  descLabel.textContent = 'Beschrijving'
+  descLabel.textContent = s.fieldDescription
   const descInput = document.createElement('textarea')
   descInput.maxLength = DESC_MAX
   descInput.rows = 3
@@ -122,7 +127,7 @@ function buildContributionForm(mode: 'add' | 'edit', latlng: L.LatLng, subject?:
   // Honeypot: voor mensen onzichtbaar, eenvoudige bots vullen elk veld in.
   const honeypotLabel = document.createElement('label')
   honeypotLabel.className = 'contribute-honeypot'
-  honeypotLabel.textContent = 'Website'
+  honeypotLabel.textContent = s.fieldWebsite
   const honeypotInput = document.createElement('input')
   honeypotInput.type = 'text'
   honeypotInput.name = 'website'
@@ -142,7 +147,7 @@ function buildContributionForm(mode: 'add' | 'edit', latlng: L.LatLng, subject?:
   const cancelButton = document.createElement('button')
   cancelButton.type = 'button'
   cancelButton.className = 'contribute-cancel'
-  cancelButton.textContent = 'Annuleren'
+  cancelButton.textContent = s.cancel
   cancelButton.addEventListener('click', () => {
     form.dispatchEvent(new CustomEvent('contribute:cancel'))
   })
@@ -151,7 +156,7 @@ function buildContributionForm(mode: 'add' | 'edit', latlng: L.LatLng, subject?:
   const submitButton = document.createElement('button')
   submitButton.type = 'submit'
   submitButton.className = 'contribute-submit'
-  submitButton.textContent = 'Voorstel versturen'
+  submitButton.textContent = s.submitSuggestion
   actions.appendChild(submitButton)
 
   form.appendChild(actions)
@@ -163,12 +168,12 @@ function buildContributionForm(mode: 'add' | 'edit', latlng: L.LatLng, subject?:
 
     const name = nameInput.value.trim()
     if (!name) {
-      status.textContent = 'Vul een naam in.'
+      status.textContent = s.statusNeedName
       return
     }
 
     if (!SUBMIT_ENDPOINT) {
-      status.textContent = 'Het versturen van voorstellen is nog niet actief op deze kaart.'
+      status.textContent = s.statusSubmitNotActive
       return
     }
 
@@ -186,7 +191,7 @@ function buildContributionForm(mode: 'add' | 'edit', latlng: L.LatLng, subject?:
 
     submitButton.disabled = true
     cancelButton.disabled = true
-    status.textContent = 'Versturen…'
+    status.textContent = s.statusSending
 
     fetch(SUBMIT_ENDPOINT, {
       method: 'POST',
@@ -195,12 +200,12 @@ function buildContributionForm(mode: 'add' | 'edit', latlng: L.LatLng, subject?:
     })
       .then((response) => {
         if (!response.ok) throw new Error(`Versturen mislukt: ${response.status}`)
-        status.textContent = 'Bedankt! Je voorstel wordt eerst beoordeeld voordat het op de kaart verschijnt.'
+        status.textContent = s.statusSubmitted
         form.dispatchEvent(new CustomEvent('contribute:submitted'))
       })
       .catch((error) => {
         console.error(error)
-        status.textContent = 'Versturen is niet gelukt. Probeer het later opnieuw.'
+        status.textContent = s.statusSubmitFailed
         submitButton.disabled = false
         cancelButton.disabled = false
       })
@@ -213,7 +218,7 @@ export function initContributions(map: L.Map) {
   let addMode = false
 
   const banner = L.DomUtil.create('div', 'add-mode-banner')
-  banner.textContent = 'Klik op de kaart om een locatie toe te voegen. Klik nogmaals op de knop om te annuleren.'
+  banner.textContent = s.addModeBanner
   banner.hidden = true
   map.getContainer().appendChild(banner)
 
@@ -223,9 +228,9 @@ export function initContributions(map: L.Map) {
       const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control add-location-control')
       const button = L.DomUtil.create('a', 'add-location-button', container)
       button.href = '#'
-      button.title = 'Locatie toevoegen'
+      button.title = s.addLocation
       button.setAttribute('role', 'button')
-      button.setAttribute('aria-label', 'Locatie toevoegen')
+      button.setAttribute('aria-label', s.addLocation)
       button.setAttribute('aria-pressed', 'false')
       button.innerHTML = '+'
 

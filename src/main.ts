@@ -2,18 +2,23 @@ import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { CATEGORY_LABELS, type CategoryKey } from './categoryLabels'
 import { EDITABLE_CATEGORIES, buildSuggestEditLink, initContributions, type EditableCategoryKey } from './contribute'
+import { getLocale } from './locale'
+import { STRINGS } from './i18n'
+
+const locale = getLocale()
+const s = STRINGS[locale]
 
 // ---------- Categories ----------
 // Elke categorie heeft een eigen SVG-icoon (uit de "glyphs-poly" iconset,
 // MIT-licentie, via @iconify-json/glyphs-poly), in dezelfde divIcon-opzet
 // als voorheen met emoji's.
 const CATEGORIES: Record<CategoryKey, { label: string; icon: string }> = {
-  water: { label: CATEGORY_LABELS.water, icon: `${import.meta.env.BASE_URL}icons/water.svg` },
-  binnen: { label: CATEGORY_LABELS.binnen, icon: `${import.meta.env.BASE_URL}icons/binnen.svg` },
-  park: { label: CATEGORY_LABELS.park, icon: `${import.meta.env.BASE_URL}icons/park.svg` },
-  zwembad: { label: CATEGORY_LABELS.zwembad, icon: `${import.meta.env.BASE_URL}icons/zwembad.svg` },
-  buitenwater: { label: CATEGORY_LABELS.buitenwater, icon: `${import.meta.env.BASE_URL}icons/buitenwater.svg` },
-  temperatuur: { label: CATEGORY_LABELS.temperatuur, icon: `${import.meta.env.BASE_URL}icons/temperatuur.svg` },
+  water: { label: CATEGORY_LABELS[locale].water, icon: `${import.meta.env.BASE_URL}icons/water.svg` },
+  binnen: { label: CATEGORY_LABELS[locale].binnen, icon: `${import.meta.env.BASE_URL}icons/binnen.svg` },
+  park: { label: CATEGORY_LABELS[locale].park, icon: `${import.meta.env.BASE_URL}icons/park.svg` },
+  zwembad: { label: CATEGORY_LABELS[locale].zwembad, icon: `${import.meta.env.BASE_URL}icons/zwembad.svg` },
+  buitenwater: { label: CATEGORY_LABELS[locale].buitenwater, icon: `${import.meta.env.BASE_URL}icons/buitenwater.svg` },
+  temperatuur: { label: CATEGORY_LABELS[locale].temperatuur, icon: `${import.meta.env.BASE_URL}icons/temperatuur.svg` },
 }
 
 function makeIcon(iconUrl: string) {
@@ -112,7 +117,7 @@ const sidebarToggle = document.getElementById('sidebarToggle')
 sidebarToggle?.addEventListener('click', () => {
   const collapsed = layoutEl?.classList.toggle('sidebar-collapsed') ?? false
   sidebarToggle.setAttribute('aria-expanded', String(!collapsed))
-  sidebarToggle.setAttribute('aria-label', collapsed ? 'Toon categorieën' : 'Verberg categorieën')
+  sidebarToggle.setAttribute('aria-label', collapsed ? s.showCategories : s.hideCategories)
 })
 
 // ---------- Weather (Open-Meteo, geen API-key nodig) ----------
@@ -127,9 +132,9 @@ async function loadWeather() {
     const t = Math.round(data.current.temperature_2m)
     const feels = Math.round(data.current.apparent_temperature)
     const max = Math.round(data.daily.temperature_2m_max[0])
-    badge.innerHTML = `<strong>${t}°C</strong>&nbsp;· voelt als ${feels}°C&nbsp;· max ${max}°C`
+    badge.innerHTML = s.weatherBadge(t, feels, max)
   } catch (error) {
-    badge.textContent = 'Weer kon niet worden geladen'
+    badge.textContent = s.weatherError
     console.error(error)
   }
 }
@@ -176,9 +181,9 @@ const LocateControl = L.Control.extend({
     const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control locate-control')
     const button = L.DomUtil.create('a', 'locate-button', container)
     button.href = '#'
-    button.title = 'Mijn locatie tonen'
+    button.title = s.showMyLocation
     button.setAttribute('role', 'button')
-    button.setAttribute('aria-label', 'Mijn locatie tonen')
+    button.setAttribute('aria-label', s.showMyLocation)
     button.innerHTML = '◎'
 
     L.DomEvent.disableClickPropagation(container)
@@ -261,7 +266,7 @@ map.on('locationfound', (e: L.LocationEvent) => {
 map.on('locationerror', (e: L.ErrorEvent) => {
   watchingLocation = false
   document.querySelector('.locate-button')?.classList.remove('active')
-  alert(`Kon locatie niet bepalen: ${e.message}`)
+  alert(s.locationError(e.message))
 })
 
 const layerGroups: Record<CategoryKey, L.LayerGroup> = {
@@ -367,7 +372,7 @@ async function loadWaterPoints() {
       .map((waypoint) => {
         const lat = Number(waypoint.getAttribute('lat'))
         const lon = Number(waypoint.getAttribute('lon'))
-        const name = waypoint.querySelector('name')?.textContent?.trim() ?? 'Onbekend'
+        const name = waypoint.querySelector('name')?.textContent?.trim() ?? s.unknownLocation
         const comment = waypoint.querySelector('cmt')?.textContent?.trim() ?? ''
 
         return { name, lat, lon, comment } satisfies WaterPoint
@@ -379,7 +384,7 @@ async function loadWaterPoints() {
     renderFilters() // update de teller in de zijbalk
 
     points.forEach((point) => {
-      const commentText = (point.comment || 'Drinkwaterpunt').replace(/\s+/g, ' ').trim()
+      const commentText = (point.comment || CATEGORIES.water.label).replace(/\s+/g, ' ').trim()
       const content = buildPopupContent(point.name, commentText)
 
       const marker = L.marker([point.lat, point.lon], { icon: makeIcon(CATEGORIES.water.icon) })
@@ -496,19 +501,19 @@ async function loadTemperatureLayer() {
 
     points.forEach((point) => {
       const time = point.updatedAt
-        ? new Date(point.updatedAt).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
+        ? new Date(point.updatedAt).toLocaleTimeString(s.dateLocale, { hour: '2-digit', minute: '2-digit' })
         : null
-      const humidityText = point.humidity !== null ? ` · ${Math.round(point.humidity)}% luchtvochtigheid` : ''
-      const timeText = time ? ` · bijgewerkt ${time}` : ''
+      const humidityText = point.humidity !== null ? s.humidity(Math.round(point.humidity)) : ''
+      const timeText = time ? s.updatedAt(time) : ''
       const body = `${point.tempC.toFixed(1)}°C${humidityText}${timeText}`
-      const content = buildPopupContent('Temperatuursensor', body)
+      const content = buildPopupContent(s.temperatureSensor, body)
 
       const marker = L.marker([point.lat, point.lon], { icon: makeTempIcon(point.tempC) })
         .bindPopup(content, { autoPan: true })
         .addTo(layerGroups.temperatuur)
       marker
         .getElement()
-        ?.setAttribute('aria-label', `Temperatuursensor: ${point.tempC.toFixed(1)}°C`)
+        ?.setAttribute('aria-label', `${s.temperatureSensor}: ${point.tempC.toFixed(1)}°C`)
     })
   } catch (error) {
     console.error('Kon temperatuurmetingen niet laden', error)
