@@ -1,5 +1,6 @@
 [
   {
+    "id": "stadsfoyer-stadhuis",
     "cat": "binnen",
     "name": "Stadsfoyer Stadhuis",
     "addr": "Stadhuisplein 1, Leiden",
@@ -10,6 +11,7 @@
     "coords_verified": true
   },
   {
+    "id": "stadskantoor",
     "cat": "binnen",
     "name": "Stadskantoor",
     "addr": "Bargelaan 190, Leiden",
@@ -20,6 +22,7 @@
     "coords_verified": false
   },
   {
+    "id": "rijksmuseum-boerhaave",
     "cat": "binnen",
     "name": "Rijksmuseum Boerhaave",
     "addr": "Lange Sint Agnietenstraat 10, Leiden",
@@ -30,6 +33,7 @@
     "coords_verified": false
   },
   {
+    "id": "mimar-sinan-moskee",
     "cat": "binnen",
     "name": "Mimar Sinan Moskee",
     "addr": "Curaçaostraat 3, Leiden",
@@ -40,6 +44,7 @@
     "coords_verified": false
   },
   {
+    "id": "huis-van-de-buurt-op-eigen-wieken",
     "cat": "binnen",
     "name": "Huis van de Buurt Op Eigen Wieken",
     "addr": "Valkenpad 5, Leiden",
@@ -50,6 +55,7 @@
     "coords_verified": false
   },
   {
+    "id": "theehuis-noord",
     "cat": "binnen",
     "name": "Theehuis Noord",
     "addr": "Joop Vervoornpad 1, Leiden",
@@ -60,6 +66,7 @@
     "coords_verified": false
   },
   {
+    "id": "huis-van-de-buurt-de-kooi",
     "cat": "binnen",
     "name": "Huis van de Buurt De Kooi",
     "addr": "Driftstraat 49, Leiden",
@@ -70,6 +77,7 @@
     "coords_verified": false
   },
   {
+    "id": "winkelcentrum-kopermolen",
     "cat": "binnen",
     "name": "Winkelcentrum Kopermolen",
     "addr": "Kopermolen 1, Leiden",
@@ -80,6 +88,7 @@
     "coords_verified": false
   },
   {
+    "id": "speeltuin-merendroom",
     "cat": "binnen",
     "name": "Speeltuin Merendroom",
     "addr": "Valkenpad, Leiden",
@@ -90,6 +99,7 @@
     "coords_verified": false
   },
   {
+    "id": "sportcomplex-de-vliet",
     "cat": "binnen",
     "name": "Sportcomplex De Vliet",
     "addr": "Marie Diebenplaats 104, Leiden",
@@ -100,6 +110,7 @@
     "coords_verified": false
   },
   {
+    "id": "huis-van-de-buurt-stevenshof",
     "cat": "binnen",
     "name": "Huis van de Buurt Stevenshof",
     "addr": "Trix Terwindtstraat 4, Leiden",
@@ -110,6 +121,7 @@
     "coords_verified": false
   },
   {
+    "id": "naturalis-biodiversity-center",
     "cat": "binnen",
     "name": "Naturalis Biodiversity Center",
     "addr": "Darwinweg 2, Leiden",
@@ -120,6 +132,7 @@
     "coords_verified": false
   },
   {
+    "id": "zwembad-de-zijl",
     "cat": "zwembad",
     "name": "Zwembad De Zijl",
     "addr": "Paramaribostraat 66, Leiden",
@@ -130,6 +143,7 @@
     "coords_verified": false
   },
   {
+    "id": "zwembad-de-vliet",
     "cat": "zwembad",
     "name": "Zwembad De Vliet",
     "addr": "Marie Diebenplaats 104, Leiden",
@@ -140,6 +154,7 @@
     "coords_verified": false
   },
   {
+    "id": "leidse-hout",
     "cat": "park",
     "name": "Leidse Hout",
     "addr": "Leidse Hout, Leiden",
@@ -150,6 +165,7 @@
     "coords_verified": false
   },
   {
+    "id": "plantsoen",
     "cat": "park",
     "name": "Plantsoen",
     "addr": "Plantsoen, Leiden",
@@ -160,6 +176,7 @@
     "coords_verified": false
   },
   {
+    "id": "huigpark",
     "cat": "park",
     "name": "Huigpark",
     "addr": "Huigpark, Leiden",
@@ -170,6 +187,7 @@
     "coords_verified": false
   },
   {
+    "id": "van-der-werfpark",
     "cat": "park",
     "name": "Van der Werfpark",
     "addr": "Kruitschip, Leiden",
@@ -180,6 +198,7 @@
     "coords_verified": false
   },
   {
+    "id": "kweektuin-singelpark",
     "cat": "park",
     "name": "Kweektuin Singelpark",
     "addr": "Plesmanlaan, Leiden",
@@ -190,6 +209,7 @@
     "coords_verified": false
   },
   {
+    "id": "zwembad-de-vliet-buitenbad",
     "cat": "zwembad",
     "name": "Zwembad De Vliet (buitenbad)",
     "addr": "Voorschoterweg 6, Leiden",
@@ -200,6 +220,7 @@
     "coords_verified": false
   },
   {
+    "id": "waterspeelplaats-cronesteijn",
     "cat": "buitenwater",
     "name": "Waterspeelplaats Cronesteijn",
     "addr": "Polderpark Cronesteyn, Leiden",
@@ -210,6 +231,7 @@
     "coords_verified": false
   },
   {
+    "id": "kagerplassen-t-joppe-merenwijk",
     "cat": "buitenwater",
     "name": "Kagerplassen ’t Joppe Merenwijk",
     "addr": "Kagerplassen, Leiden",
@@ -220,6 +242,7 @@
     "coords_verified": false
   },
   {
+    "id": "valkenburgse-meer",
     "cat": "buitenwater",
     "name": "Valkenburgse Meer",
     "addr": "Valkenburgse Meer, Leiden/Valkenburg",
@@ -230,6 +253,7 @@
     "coords_verified": false
   },
   {
+    "id": "kagerplassen-t-joppe-westoever",
     "cat": "buitenwater",
     "name": "Kagerplassen ’t Joppe Westoever",
     "addr": "Kagerplassen, Warmond",
@@ -240,6 +264,7 @@
     "coords_verified": false
   },
   {
+    "id": "vadedoplas",
     "cat": "buitenwater",
     "name": "Vadedoplas",
     "addr": "Vadedoplas, Leiderdorp",
@@ -250,6 +275,7 @@
     "coords_verified": false
   },
   {
+    "id": "klinkenbergerplas-noordwestoever",
     "cat": "buitenwater",
     "name": "Klinkenbergerplas Noordwestoever",
     "addr": "Klinkenbergerplas, Oegstgeest",
@@ -260,6 +286,7 @@
     "coords_verified": false
   },
   {
+    "id": "klinkenbergerplas-westoever",
     "cat": "buitenwater",
     "name": "Klinkenbergerplas Westoever",
     "addr": "Klinkenbergerplas, Oegstgeest",
@@ -270,6 +297,7 @@
     "coords_verified": false
   },
   {
+    "id": "vlietland-surfstrand-noordwestoever",
     "cat": "buitenwater",
     "name": "Vlietland Surfstrand Noordwestoever",
     "addr": "Vlietland, Leidschendam",
@@ -280,6 +308,7 @@
     "coords_verified": false
   },
   {
+    "id": "vlietland-speelvijver",
     "cat": "buitenwater",
     "name": "Vlietland Speelvijver",
     "addr": "Vlietland, Leidschendam",
@@ -290,6 +319,7 @@
     "coords_verified": false
   },
   {
+    "id": "vlietland-badstrand-noordoostoever",
     "cat": "buitenwater",
     "name": "Vlietland Badstrand Noordoostoever",
     "addr": "Vlietland, Leidschendam",
