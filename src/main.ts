@@ -1,6 +1,7 @@
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { CATEGORY_LABELS, type CategoryKey } from './categoryLabels'
+import { EDITABLE_CATEGORIES, buildSuggestEditLink, initContributions, type EditableCategoryKey } from './contribute'
 
 // ---------- Categories ----------
 // Elke categorie heeft een eigen SVG-icoon (uit de "glyphs-poly" iconset,
@@ -36,6 +37,7 @@ function buildPopupContent(title: string, body: string) {
 
 // ---------- Static locations (koelteplekken, parken, zwembaden) ----------
 type StaticPoint = {
+  id: string
   cat: Exclude<CategoryKey, 'water'>
   name: string
   addr: string
@@ -46,6 +48,36 @@ type StaticPoint = {
 
 let STATIC_LOCATIONS: StaticPoint[] = []
 
+// Community-inzendingen (toevoegingen + wijzigingen op bestaande locaties) leven
+// in een aparte data-repo en worden los van de site gepubliceerd: een gemergede
+// PR daar verschijnt zo op de kaart, zonder dat deze site opnieuw hoeft te deployen.
+const COMMUNITY_DATA_URL = 'https://raw.githubusercontent.com/corvanessen/KoelteKaartData/main/locations.json'
+
+type LocationOverride = {
+  cat: Exclude<CategoryKey, 'water'>
+  name: string
+  addr: string
+  desc: string
+  lat: number
+  lon: number
+}
+
+type CommunityData = {
+  additions: StaticPoint[]
+  overrides: Record<string, LocationOverride>
+}
+
+async function loadCommunityData(): Promise<CommunityData> {
+  try {
+    const response = await fetch(COMMUNITY_DATA_URL)
+    if (!response.ok) return { additions: [], overrides: {} }
+    return (await response.json()) as CommunityData
+  } catch (error) {
+    console.error(error)
+    return { additions: [], overrides: {} }
+  }
+}
+
 async function loadStaticLocations() {
   const response = await fetch(`${import.meta.env.BASE_URL}locations.json`)
 
@@ -53,7 +85,13 @@ async function loadStaticLocations() {
     throw new Error(`Kon locaties niet laden: ${response.status}`)
   }
 
-  STATIC_LOCATIONS = (await response.json()) as StaticPoint[]
+  const base = (await response.json()) as StaticPoint[]
+  const community = await loadCommunityData()
+
+  const withOverrides = base.map((loc) => (community.overrides[loc.id] ? { ...loc, ...community.overrides[loc.id] } : loc))
+  const additions = community.additions.map((loc) => (community.overrides[loc.id] ? { ...loc, ...community.overrides[loc.id] } : loc))
+
+  STATIC_LOCATIONS = [...withOverrides, ...additions]
 }
 
 // ---------- App shell ----------
@@ -106,6 +144,8 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
   subdomains: 'abcd',
   attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
 }).addTo(map)
+
+initContributions(map)
 
 // De hoogte van #map hangt af van de flex-layout (header/sidebar), die na
 // initialisatie nog kan verschuiven (weerbadge, fonts, filters). Leaflet
@@ -242,7 +282,10 @@ async function loadStaticLocationsToMap() {
 
     STATIC_LOCATIONS.forEach((loc) => {
       counts[loc.cat]++
-      const body = `${loc.addr}${loc.desc ? ' — ' + loc.desc : ''}`
+      const editLink = EDITABLE_CATEGORIES.includes(loc.cat as EditableCategoryKey)
+        ? buildSuggestEditLink({ ...loc, cat: loc.cat as EditableCategoryKey })
+        : ''
+      const body = `${loc.addr}${loc.desc ? ' — ' + loc.desc : ''}${editLink}`
       const content = buildPopupContent(loc.name, body)
       const marker = L.marker([loc.lat, loc.lon], { icon: makeIcon(CATEGORIES[loc.cat].icon) })
         .bindPopup(content, { autoPan: true })

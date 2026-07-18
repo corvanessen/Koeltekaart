@@ -1,0 +1,14 @@
+name = "koeltekaart-submit"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[vars]
+GITHUB_OWNER = "corvanessen"
+GITHUB_REPO = "KoelteKaartData"
+ALLOWED_ORIGIN = "https://corvanessen.github.io"
+
+# Aanmaken: `npx wrangler kv namespace create koeltekaart-rate-limit`,
+# de teruggegeven id hieronder invullen.
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "e905179005bd4a2db33bee285fcc70da"
