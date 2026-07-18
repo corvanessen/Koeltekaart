@@ -56,6 +56,10 @@ const ADDR_MAX = 150
 const DESC_MAX = 500
 const RATE_LIMIT_MAX = 5
 const RATE_LIMIT_WINDOW_SECONDS = 60 * 60
+// Backstop tegen misbruik dat het per-IP limiet omzeilt (bv. via meerdere IP's).
+const GLOBAL_RATE_LIMIT_MAX = 50
+const GLOBAL_RATE_LIMIT_WINDOW_SECONDS = 60 * 60 * 24
+const GLOBAL_RATE_LIMIT_KEY = 'rl:global'
 const LOCATIONS_PATH = 'locations.json'
 // De originele, samengestelde locaties leven in de site-repo zelf (publiek,
 // dus zonder token leesbaar) — deze worker schrijft alleen naar GITHUB_REPO.
@@ -122,13 +126,31 @@ function validate(payload: Partial<SubmissionPayload>): string | null {
   return null
 }
 
-async function checkRateLimit(env: Env, ip: string): Promise<boolean> {
-  const key = `rl:${ip}`
+async function getCount(env: Env, key: string): Promise<number> {
   const raw = await env.RATE_LIMIT_KV.get(key)
-  const count = raw ? Number(raw) : 0
-  if (count >= RATE_LIMIT_MAX) return false
-  await env.RATE_LIMIT_KV.put(key, String(count + 1), { expirationTtl: RATE_LIMIT_WINDOW_SECONDS })
-  return true
+  return raw ? Number(raw) : 0
+}
+
+async function incrementCount(env: Env, key: string, current: number, windowSeconds: number): Promise<void> {
+  await env.RATE_LIMIT_KV.put(key, String(current + 1), { expirationTtl: windowSeconds })
+}
+
+// Twee onafhankelijke limieten: per IP (misbruik vanaf één plek) en globaal
+// (backstop als iemand het per-IP limiet omzeilt door IP's te wisselen).
+// Alleen tellen wat écht binnenkomt; bij overschrijding van één limiet wordt
+// niets opgehoogd.
+async function checkRateLimit(env: Env, ip: string): Promise<{ allowed: boolean; reason?: 'ip' | 'global' }> {
+  const ipKey = `rl:${ip}`
+  const [ipCount, globalCount] = await Promise.all([getCount(env, ipKey), getCount(env, GLOBAL_RATE_LIMIT_KEY)])
+
+  if (ipCount >= RATE_LIMIT_MAX) return { allowed: false, reason: 'ip' }
+  if (globalCount >= GLOBAL_RATE_LIMIT_MAX) return { allowed: false, reason: 'global' }
+
+  await Promise.all([
+    incrementCount(env, ipKey, ipCount, RATE_LIMIT_WINDOW_SECONDS),
+    incrementCount(env, GLOBAL_RATE_LIMIT_KEY, globalCount, GLOBAL_RATE_LIMIT_WINDOW_SECONDS),
+  ])
+  return { allowed: true }
 }
 
 async function githubRequest<T>(env: Env, path: string, init: RequestInit = {}): Promise<T> {
@@ -304,13 +326,13 @@ export default {
     }
 
     const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown'
-    const allowed = await checkRateLimit(env, ip)
+    const { allowed, reason } = await checkRateLimit(env, ip)
     if (!allowed) {
-      return jsonResponse(
-        { error: 'Te veel voorstellen vanaf dit IP-adres, probeer het later opnieuw.' },
-        429,
-        origin,
-      )
+      const message =
+        reason === 'global'
+          ? 'Er zijn op dit moment te veel voorstellen binnengekomen, probeer het morgen opnieuw.'
+          : 'Te veel voorstellen vanaf dit IP-adres, probeer het later opnieuw.'
+      return jsonResponse({ error: message }, 429, origin)
     }
 
     try {
