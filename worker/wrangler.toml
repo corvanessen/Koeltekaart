@@ -7,8 +7,21 @@ GITHUB_OWNER = "corvanessen"
 GITHUB_REPO = "KoelteKaartData"
 ALLOWED_ORIGIN = "https://corvanessen.github.io"
 
+# Elke 15 minuten de RIVM Samen Meten-temperaturen verversen (zie scheduled()
+# in src/index.ts) — apart van de rate-limit-KV omdat dit een cache is, geen
+# per-IP teller.
+[triggers]
+crons = ["*/15 * * * *"]
+
 # Aanmaken: `npx wrangler kv namespace create koeltekaart-rate-limit`,
 # de teruggegeven id hieronder invullen.
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"
 id = "e905179005bd4a2db33bee285fcc70da"
+
+# Aanmaken: `npx wrangler kv namespace create koeltekaart-cache`,
+# de teruggegeven id hieronder invullen. Bewaart de door de cron opgehaalde
+# Samen Meten-temperaturen (zie TEMPERATURE_CACHE_KEY in src/index.ts).
+[[kv_namespaces]]
+binding = "CACHE_KV"
+id = "<vul-hier-de-namespace-id-in-na-aanmaken>"

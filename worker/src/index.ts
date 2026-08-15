@@ -1,9 +1,13 @@
+import { findMunicipality, isWithinRegion, type MunicipalityId } from '../../shared/municipalities'
+import { fetchSamenMetenTemperatures } from './samenMeten'
+
 export interface Env {
   GITHUB_TOKEN: string
   GITHUB_OWNER: string
   GITHUB_REPO: string
   ALLOWED_ORIGIN: string
   RATE_LIMIT_KV: KVNamespace
+  CACHE_KV: KVNamespace
 }
 
 type EditableCategoryKey = 'binnen' | 'park' | 'zwembad' | 'buitenwater'
@@ -18,6 +22,8 @@ type SubmissionPayload = {
   desc: string
   lat: number
   lon: number
+  place?: string
+  municipality?: MunicipalityId
   website?: string
 }
 
@@ -29,6 +35,8 @@ type LocationEntry = {
   desc: string
   lat: number
   lon: number
+  place?: string
+  municipality?: MunicipalityId
   address_confirmed?: boolean
   coords_verified?: boolean
 }
@@ -40,6 +48,8 @@ type LocationOverride = {
   desc: string
   lat: number
   lon: number
+  place?: string
+  municipality?: MunicipalityId
 }
 
 // additions = nieuwe community-locaties; overrides = wijzigingen op een bestaande
@@ -49,8 +59,6 @@ type CommunityData = {
   overrides: Record<string, LocationOverride>
 }
 
-// Zelfde grenzen als municipalityBounds in src/main.ts.
-const LEIDEN_BOUNDS = { minLat: 52.11, maxLat: 52.28, minLon: 4.33, maxLon: 4.55 }
 const NAME_MAX = 100
 const ADDR_MAX = 150
 const DESC_MAX = 500
@@ -116,13 +124,8 @@ function validate(payload: Partial<SubmissionPayload>): string | null {
   if (payload.desc && payload.desc.length > DESC_MAX) return 'Beschrijving is te lang.'
   if (typeof payload.lat !== 'number' || typeof payload.lon !== 'number' || !Number.isFinite(payload.lat) || !Number.isFinite(payload.lon))
     return 'Ongeldige coördinaten.'
-  if (
-    payload.lat < LEIDEN_BOUNDS.minLat ||
-    payload.lat > LEIDEN_BOUNDS.maxLat ||
-    payload.lon < LEIDEN_BOUNDS.minLon ||
-    payload.lon > LEIDEN_BOUNDS.maxLon
-  )
-    return 'Locatie ligt buiten de regio Leiden.'
+  if (!isWithinRegion({ lat: payload.lat, lon: payload.lon }))
+    return 'Locatie ligt buiten de ondersteunde gemeentes.'
   return null
 }
 
@@ -197,6 +200,7 @@ async function fetchCommunityData(env: Env): Promise<{ data: CommunityData; sha?
 }
 
 function applyEdit(payload: SubmissionPayload, community: CommunityData, baseLocations: LocationEntry[]): string {
+  const municipality = payload.municipality ?? findMunicipality({ lat: payload.lat, lon: payload.lon })
   const additionIndex = community.additions.findIndex((loc) => loc.id === payload.id)
 
   if (additionIndex !== -1) {
@@ -208,6 +212,8 @@ function applyEdit(payload: SubmissionPayload, community: CommunityData, baseLoc
       desc: payload.desc,
       lat: payload.lat,
       lon: payload.lon,
+      place: payload.place,
+      municipality,
     }
     return `Wijziging: ${payload.name}`
   }
@@ -223,6 +229,8 @@ function applyEdit(payload: SubmissionPayload, community: CommunityData, baseLoc
     desc: payload.desc,
     lat: payload.lat,
     lon: payload.lon,
+    place: payload.place,
+    municipality,
   }
   return `Wijziging: ${payload.name}`
 }
@@ -241,6 +249,8 @@ function applyAdd(payload: SubmissionPayload, community: CommunityData, baseLoca
     desc: payload.desc,
     lat: payload.lat,
     lon: payload.lon,
+    place: payload.place,
+    municipality: payload.municipality ?? findMunicipality({ lat: payload.lat, lon: payload.lon }),
     address_confirmed: false,
     coords_verified: false,
   })
@@ -291,6 +301,8 @@ async function createSubmissionPR(env: Env, payload: SubmissionPayload): Promise
   })
 }
 
+const TEMPERATURE_CACHE_KEY = 'cache:samenmeten'
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const origin = env.ALLOWED_ORIGIN
@@ -300,6 +312,13 @@ export default {
     }
 
     const url = new URL(request.url)
+
+    if (url.pathname === '/temperature') {
+      if (request.method !== 'GET') return jsonResponse({ error: 'Methode niet toegestaan.' }, 405, origin)
+      const cached = await env.CACHE_KV.get(TEMPERATURE_CACHE_KEY)
+      return jsonResponse(cached ? JSON.parse(cached) : { points: [], updatedAt: null }, 200, origin)
+    }
+
     if (url.pathname !== '/submit') {
       return jsonResponse({ error: 'Niet gevonden.' }, 404, origin)
     }
@@ -341,6 +360,21 @@ export default {
     } catch (error) {
       console.error(error)
       return jsonResponse({ error: 'Versturen naar GitHub is mislukt.' }, 502, origin)
+    }
+  },
+
+  // Cron Trigger (zie wrangler.toml [triggers]): haalt de RIVM Samen
+  // Meten-temperaturen server-side op en cachet het compacte resultaat in KV,
+  // zodat de kaart zelf maar één klein verzoek hoeft te doen in plaats van
+  // honderden losse requests naar de publieke API.
+  async scheduled(_event: ScheduledEvent, env: Env): Promise<void> {
+    try {
+      const points = await fetchSamenMetenTemperatures()
+      await env.CACHE_KV.put(TEMPERATURE_CACHE_KEY, JSON.stringify({ points, updatedAt: new Date().toISOString() }), {
+        expirationTtl: 60 * 60,
+      })
+    } catch (error) {
+      console.error('Samen Meten-cron mislukt', error)
     }
   },
 }

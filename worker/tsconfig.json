@@ -6,10 +6,11 @@
     "moduleResolution": "Bundler",
     "types": ["@cloudflare/workers-types"],
     "strict": true,
+    "resolveJsonModule": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src"]
+  "include": ["src", "../shared"]
 }

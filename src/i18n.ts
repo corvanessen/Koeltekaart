@@ -21,6 +21,8 @@ export const STRINGS: Record<
     fieldName: string
     fieldCategory: string
     fieldAddress: string
+    fieldPlace: string
+    fieldMunicipality: string
     fieldDescription: string
     fieldWebsite: string
     cancel: string
@@ -31,6 +33,12 @@ export const STRINGS: Record<
     statusSubmitted: string
     statusSubmitFailed: string
     dateLocale: string
+    sourceSensorLeiden: string
+    sourceSamenMeten: string
+    searchHeading: string
+    searchLabel: string
+    searchPlaceholder: string
+    searchNoResults: string
   }
 > = {
   nl: {
@@ -52,6 +60,8 @@ export const STRINGS: Record<
     fieldName: 'Naam',
     fieldCategory: 'Categorie',
     fieldAddress: 'Adres',
+    fieldPlace: 'Plaats',
+    fieldMunicipality: 'Gemeente',
     fieldDescription: 'Beschrijving',
     fieldWebsite: 'Website',
     cancel: 'Annuleren',
@@ -62,6 +72,12 @@ export const STRINGS: Record<
     statusSubmitted: 'Bedankt! Je voorstel wordt eerst beoordeeld voordat het op de kaart verschijnt.',
     statusSubmitFailed: 'Versturen is niet gelukt. Probeer het later opnieuw.',
     dateLocale: 'nl-NL',
+    sourceSensorLeiden: 'Sensor Leiden',
+    sourceSamenMeten: 'Samen Meten (RIVM)',
+    searchHeading: 'Zoeken',
+    searchLabel: 'Zoek een gemeente of plaats',
+    searchPlaceholder: 'Zoek gemeente of plaats…',
+    searchNoResults: 'Geen gemeente of plaats gevonden',
   },
   en: {
     showCategories: 'Show categories',
@@ -82,6 +98,8 @@ export const STRINGS: Record<
     fieldName: 'Name',
     fieldCategory: 'Category',
     fieldAddress: 'Address',
+    fieldPlace: 'Place',
+    fieldMunicipality: 'Municipality',
     fieldDescription: 'Description',
     fieldWebsite: 'Website',
     cancel: 'Cancel',
@@ -92,5 +110,11 @@ export const STRINGS: Record<
     statusSubmitted: 'Thanks! Your suggestion will be reviewed before it appears on the map.',
     statusSubmitFailed: 'Sending failed. Please try again later.',
     dateLocale: 'en-GB',
+    sourceSensorLeiden: 'Sensor Leiden',
+    sourceSamenMeten: 'Samen Meten (RIVM)',
+    searchHeading: 'Search',
+    searchLabel: 'Search for a municipality or place',
+    searchPlaceholder: 'Search municipality or place…',
+    searchNoResults: 'No municipality or place found',
   },
 }

@@ -8,7 +8,9 @@
     "lat": 52.1581926,
     "lon": 4.4912151,
     "address_confirmed": false,
-    "coords_verified": true
+    "coords_verified": true,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "stadskantoor",
@@ -19,7 +21,9 @@
     "lat": 52.165923,
     "lon": 4.4804033,
     "address_confirmed": true,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "rijksmuseum-boerhaave",
@@ -30,7 +34,9 @@
     "lat": 52.1615338,
     "lon": 4.4889042,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "mimar-sinan-moskee",
@@ -41,7 +47,9 @@
     "lat": 52.16716583017126,
     "lon": 4.507728453616474,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "huis-van-de-buurt-op-eigen-wieken",
@@ -52,7 +60,9 @@
     "lat": 52.16669,
     "lon": 4.48435,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "theehuis-noord",
@@ -63,7 +73,9 @@
     "lat": 52.1697371,
     "lon": 4.4998594,
     "address_confirmed": true,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "huis-van-de-buurt-de-kooi",
@@ -74,7 +86,9 @@
     "lat": 52.16515,
     "lon": 4.48495,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "winkelcentrum-kopermolen",
@@ -85,7 +99,9 @@
     "lat": 52.1764798,
     "lon": 4.5053893,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "speeltuin-merendroom",
@@ -96,7 +112,9 @@
     "lat": 52.16685,
     "lon": 4.48462,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "sportcomplex-de-vliet",
@@ -107,7 +125,9 @@
     "lat": 52.13866172652605,
     "lon": 4.479996900178032,
     "address_confirmed": true,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "huis-van-de-buurt-stevenshof",
@@ -118,7 +138,9 @@
     "lat": 52.1504031,
     "lon": 4.4542095,
     "address_confirmed": true,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "naturalis-biodiversity-center",
@@ -129,7 +151,9 @@
     "lat": 52.16447,
     "lon": 4.48123,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "zwembad-de-zijl",
@@ -140,7 +164,9 @@
     "lat": 52.16722402870023,
     "lon": 4.514992205162902,
     "address_confirmed": true,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "zwembad-de-vliet",
@@ -151,7 +177,9 @@
     "lat": 52.13891673582082,
     "lon": 4.481143506265176,
     "address_confirmed": true,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "leidse-hout",
@@ -162,7 +190,9 @@
     "lat": 52.1769596,
     "lon": 4.4780952,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "plantsoen",
@@ -173,7 +203,9 @@
     "lat": 52.15402,
     "lon": 4.50235,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "huigpark",
@@ -184,7 +216,9 @@
     "lat": 52.1637438,
     "lon": 4.4978689,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "van-der-werfpark",
@@ -195,7 +229,9 @@
     "lat": 52.155558281128265,
     "lon": 4.490612150725225,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "kweektuin-singelpark",
@@ -206,7 +242,9 @@
     "lat": 52.16396,
     "lon": 4.47973,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "zwembad-de-vliet-buitenbad",
@@ -217,7 +255,9 @@
     "lat": 52.14006973735579,
     "lon": 4.482696898610025,
     "address_confirmed": true,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "waterspeelplaats-cronesteijn",
@@ -228,7 +268,9 @@
     "lat": 52.1435844,
     "lon": 4.4986876,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "leiden"
   },
   {
     "id": "kagerplassen-t-joppe-merenwijk",
@@ -239,7 +281,9 @@
     "lat": 52.187456653757,
     "lon": 4.5186269509718,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden",
+    "municipality": "teylingen"
   },
   {
     "id": "valkenburgse-meer",
@@ -250,7 +294,9 @@
     "lat": 52.158698172192,
     "lon": 4.4422182403121,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiden/Valkenburg",
+    "municipality": "leiden"
   },
   {
     "id": "kagerplassen-t-joppe-westoever",
@@ -261,7 +307,9 @@
     "lat": 52.194234752038,
     "lon": 4.5082811244822,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Warmond",
+    "municipality": "teylingen"
   },
   {
     "id": "vadedoplas",
@@ -272,7 +320,9 @@
     "lat": 52.151533313746,
     "lon": 4.543433933373,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leiderdorp",
+    "municipality": "leiderdorp"
   },
   {
     "id": "klinkenbergerplas-noordwestoever",
@@ -283,7 +333,9 @@
     "lat": 52.199281599778,
     "lon": 4.4858514044567,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Oegstgeest",
+    "municipality": "oegstgeest"
   },
   {
     "id": "klinkenbergerplas-westoever",
@@ -294,7 +346,9 @@
     "lat": 52.195080599626,
     "lon": 4.4861140231735,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Oegstgeest",
+    "municipality": "oegstgeest"
   },
   {
     "id": "vlietland-surfstrand-noordwestoever",
@@ -305,7 +359,9 @@
     "lat": 52.121132282782,
     "lon": 4.4592039019375,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leidschendam",
+    "municipality": "leidschendam-voorburg"
   },
   {
     "id": "vlietland-speelvijver",
@@ -316,7 +372,9 @@
     "lat": 52.120742966949,
     "lon": 4.4683880479135,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leidschendam",
+    "municipality": "leidschendam-voorburg"
   },
   {
     "id": "vlietland-badstrand-noordoostoever",
@@ -327,6 +385,8 @@
     "lat": 52.119497735858,
     "lon": 4.46571443175,
     "address_confirmed": false,
-    "coords_verified": false
+    "coords_verified": false,
+    "place": "Leidschendam",
+    "municipality": "leidschendam-voorburg"
   }
 ]

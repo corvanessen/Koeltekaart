@@ -1,4 +1,4 @@
-Koeltekaart van Leiden
+Koeltekaart van de Leidse regio
 work in progress
 
 ## Locaties toevoegen/wijzigen en goedkeuren
@@ -28,11 +28,16 @@ hoeft niet opnieuw te deployen. **Afwijzen = de PR sluiten.**
    **KoelteKaartData**-repo en de rechten `Contents: Read and write` + `Pull requests: Read and write`.
 3. Maak de KV-namespace voor rate limiting: `npx wrangler kv namespace create koeltekaart-rate-limit`
    en vul de teruggegeven `id` in in [worker/wrangler.toml](worker/wrangler.toml).
-4. Zet het token als secret (nooit in wrangler.toml of git): `npx wrangler secret put GITHUB_TOKEN`
-5. Deploy: `npm run deploy` — onthoud de uitgegeven `*.workers.dev`-URL.
-6. Zet die URL (met `/submit` erachter) als repository variable `VITE_SUBMIT_ENDPOINT`
-   in GitHub (Settings → Secrets and variables → Actions → Variables), en lokaal in
-   een `.env`-bestand (zie [.env.example](.env.example)) voor `npm run dev`.
+4. Maak de KV-namespace voor de temperatuurcache: `npx wrangler kv namespace create koeltekaart-cache`
+   en vul de teruggegeven `id` ook in in [worker/wrangler.toml](worker/wrangler.toml) (binding `CACHE_KV`).
+5. Zet het token als secret (nooit in wrangler.toml of git): `npx wrangler secret put GITHUB_TOKEN`
+6. Deploy: `npm run deploy` — onthoud de uitgegeven `*.workers.dev`-URL. De cron trigger
+   in [worker/wrangler.toml](worker/wrangler.toml) haalt vanaf dan elke 15 minuten
+   automatisch de RIVM Samen Meten-temperaturen op voor de kaart.
+7. Zet die URL (met `/submit` erachter) als repository variable `VITE_SUBMIT_ENDPOINT`,
+   en dezelfde URL met `/temperature` erachter als `VITE_TEMPERATURE_ENDPOINT`, in GitHub
+   (Settings → Secrets and variables → Actions → Variables), en lokaal in een
+   `.env`-bestand (zie [.env.example](.env.example)) voor `npm run dev`.
 
-Zonder deze variabele toont het formulier gewoon een duidelijke melding in plaats
-van te crashen.
+Zonder deze variabelen toont het formulier gewoon een duidelijke melding in plaats
+van te crashen, en blijft de temperatuurlaag beperkt tot sensorleiden.nl.

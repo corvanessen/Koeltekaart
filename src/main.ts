@@ -4,6 +4,14 @@ import { CATEGORY_LABELS, type CategoryKey } from './categoryLabels'
 import { EDITABLE_CATEGORIES, buildSuggestEditLink, initContributions, type EditableCategoryKey } from './contribute'
 import { getLocale } from './locale'
 import { STRINGS } from './i18n'
+import { MUNICIPALITIES, regionEnvelope } from '../shared/municipalities'
+import { loadStaticLocations } from './dataSources/staticLocations'
+import { loadWaterPoints } from './dataSources/waterPoints'
+import { loadParkOutlines } from './dataSources/parks'
+import { loadAllTemperatures, SAMEN_METEN_REFRESH_MS, SENSOR_LEIDEN_REFRESH_MS } from './dataSources/temperature'
+import { buildPopupContent, makeIcon, makeTempIcon } from './render/markers'
+import { createCategoryFilterList } from './render/filters'
+import { createMunicipalitySearch } from './render/search'
 
 const locale = getLocale()
 const s = STRINGS[locale]
@@ -21,94 +29,10 @@ const CATEGORIES: Record<CategoryKey, { label: string; icon: string }> = {
   temperatuur: { label: CATEGORY_LABELS[locale].temperatuur, icon: `${import.meta.env.BASE_URL}icons/temperatuur.svg` },
 }
 
-function makeIcon(iconUrl: string) {
-  return L.divIcon({
-    html: `<span class="map-drop-icon"><img src="${iconUrl}" width="36" height="36" alt="" /></span>`,
-    className: 'map-drop-marker',
-    iconSize: [48, 48],
-    iconAnchor: [24, 24],
-    popupAnchor: [0, -18],
-  })
-}
-
-function buildPopupContent(title: string, body: string) {
-  return `
-    <div class="popup-card">
-      <div class="popup-title">${title}</div>
-      <div class="popup-body">${body}</div>
-    </div>
-  `
-}
-
-// ---------- Static locations (koelteplekken, parken, zwembaden) ----------
-type StaticPoint = {
-  id: string
-  cat: Exclude<CategoryKey, 'water'>
-  name: string
-  addr: string
-  desc: string
-  lat: number
-  lon: number
-}
-
-let STATIC_LOCATIONS: StaticPoint[] = []
-
-// Community-inzendingen (toevoegingen + wijzigingen op bestaande locaties) leven
-// in een aparte data-repo en worden los van de site gepubliceerd: een gemergede
-// PR daar verschijnt zo op de kaart, zonder dat deze site opnieuw hoeft te deployen.
-const COMMUNITY_DATA_URL = 'https://raw.githubusercontent.com/corvanessen/KoelteKaartData/main/locations.json'
-
-type LocationOverride = {
-  cat: Exclude<CategoryKey, 'water'>
-  name: string
-  addr: string
-  desc: string
-  lat: number
-  lon: number
-}
-
-type CommunityData = {
-  additions: StaticPoint[]
-  overrides: Record<string, LocationOverride>
-}
-
-async function loadCommunityData(): Promise<CommunityData> {
-  try {
-    const response = await fetch(COMMUNITY_DATA_URL)
-    if (!response.ok) return { additions: [], overrides: {} }
-    return (await response.json()) as CommunityData
-  } catch (error) {
-    console.error(error)
-    return { additions: [], overrides: {} }
-  }
-}
-
-async function loadStaticLocations() {
-  const response = await fetch(`${import.meta.env.BASE_URL}locations.json`)
-
-  if (!response.ok) {
-    throw new Error(`Kon locaties niet laden: ${response.status}`)
-  }
-
-  const base = (await response.json()) as StaticPoint[]
-  const community = await loadCommunityData()
-
-  const withOverrides = base.map((loc) => (community.overrides[loc.id] ? { ...loc, ...community.overrides[loc.id] } : loc))
-  const additions = community.additions.map((loc) => (community.overrides[loc.id] ? { ...loc, ...community.overrides[loc.id] } : loc))
-
-  STATIC_LOCATIONS = [...withOverrides, ...additions]
-}
-
 // ---------- App shell ----------
 // De header, sidebar-shell, #map en legend-note staan als statische HTML in
 // index.html (voor SEO/crawlability); main.ts vult ze alleen aan (filters,
 // weerbadge, kaartmarkers) in plaats van de shell zelf op te bouwen.
-type WaterPoint = {
-  name: string
-  lat: number
-  lon: number
-  comment: string
-}
 
 // ---------- Zijbalk in-/uitklappen ----------
 const layoutEl = document.getElementById('layout')
@@ -125,8 +49,11 @@ async function loadWeather() {
   const badge = document.getElementById('weatherBadge')
   if (!badge) return
   try {
+    const { minLat, maxLat, minLon, maxLon } = regionEnvelope()
+    const lat = (minLat + maxLat) / 2
+    const lon = (minLon + maxLon) / 2
     const res = await fetch(
-      'https://api.open-meteo.com/v1/forecast?latitude=52.16&longitude=4.49&current=temperature_2m,apparent_temperature&daily=temperature_2m_max&timezone=Europe%2FAmsterdam',
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(2)}&longitude=${lon.toFixed(2)}&current=temperature_2m,apparent_temperature&daily=temperature_2m_max&timezone=Europe%2FAmsterdam`,
     )
     const data = await res.json()
     const t = Math.round(data.current.temperature_2m)
@@ -142,7 +69,8 @@ async function loadWeather() {
 void loadWeather()
 
 // ---------- Map ----------
-const map = L.map('map').setView([52.1608, 4.497], 12)
+const regionCenter = MUNICIPALITIES.find((m) => m.id === 'leiden')?.center ?? [52.1608, 4.497]
+const map = L.map('map').setView(regionCenter, 12)
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
   maxZoom: 20,
@@ -269,6 +197,7 @@ map.on('locationerror', (e: L.ErrorEvent) => {
   alert(s.locationError(e.message))
 })
 
+// ---------- Laag-registry: één LayerGroup per categorie ----------
 const layerGroups: Record<CategoryKey, L.LayerGroup> = {
   water: L.layerGroup().addTo(map),
   binnen: L.layerGroup().addTo(map),
@@ -280,12 +209,29 @@ const layerGroups: Record<CategoryKey, L.LayerGroup> = {
 
 const counts: Record<CategoryKey, number> = { water: 0, binnen: 0, park: 0, zwembad: 0, buitenwater: 0, temperatuur: 0 }
 
+const categoryFilters = createCategoryFilterList('filters', CATEGORIES, (cat, checked) => {
+  if (checked) {
+    map.addLayer(layerGroups[cat])
+  } else {
+    map.removeLayer(layerGroups[cat])
+  }
+})
+
+createMunicipalitySearch(
+  'municipalitySearch',
+  MUNICIPALITIES,
+  { placeholder: s.searchPlaceholder, label: s.searchLabel, noResults: s.searchNoResults },
+  (result) => {
+    map.setView(result.center, result.zoom)
+  },
+)
+
 // ---------- Statische locaties toevoegen ----------
 async function loadStaticLocationsToMap() {
   try {
-    await loadStaticLocations()
+    const locations = await loadStaticLocations(import.meta.env.BASE_URL)
 
-    STATIC_LOCATIONS.forEach((loc) => {
+    locations.forEach((loc) => {
       counts[loc.cat]++
       const editLink = EDITABLE_CATEGORIES.includes(loc.cat as EditableCategoryKey)
         ? buildSuggestEditLink({ ...loc, cat: loc.cat as EditableCategoryKey })
@@ -298,7 +244,7 @@ async function loadStaticLocationsToMap() {
       marker.getElement()?.setAttribute('aria-label', `${CATEGORIES[loc.cat].label}: ${loc.name}`)
     })
 
-    renderFilters()
+    categoryFilters.render(counts)
   } catch (error) {
     console.error('Kon statische locaties niet laden', error)
   }
@@ -307,19 +253,9 @@ async function loadStaticLocationsToMap() {
 void loadStaticLocationsToMap()
 
 // ---------- Park-omtrekken (statische GeoJSON, opgehaald uit OpenStreetMap) ----------
-type ParkFeatureProperties = {
-  name?: string
-}
-
-async function loadParkOutlines() {
+async function loadParks() {
   try {
-    const response = await fetch(`${import.meta.env.BASE_URL}parks.geojson`)
-
-    if (!response.ok) {
-      throw new Error(`Kon park-omtrekken niet laden: ${response.status}`)
-    }
-
-    const data = (await response.json()) as GeoJSON.FeatureCollection<GeoJSON.Polygon, ParkFeatureProperties>
+    const data = await loadParkOutlines(import.meta.env.BASE_URL)
 
     L.geoJSON(data, {
       style: {
@@ -331,57 +267,24 @@ async function loadParkOutlines() {
       onEachFeature: (feature, layer) => {
         const name = feature.properties?.name ?? 'Park'
         layer.bindPopup(buildPopupContent(name, 'Park'), { autoPan: true })
+        layerGroups.park.addLayer(layer)
       },
-    }).addTo(layerGroups.park)
+    })
   } catch (error) {
     console.error('Kon park-omtrekken niet laden', error)
   }
 }
 
-void loadParkOutlines()
+void loadParks()
 
-// ---------- Drinkwaterpunten uit de GPX (ongewijzigde logica) ----------
-const municipalityBounds = {
-  minLat: 52.11,
-  maxLat: 52.28,
-  minLon: 4.33,
-  maxLon: 4.55,
-}
-
-function isInLeiden(point: { lat: number; lon: number }) {
-  return (
-    point.lat >= municipalityBounds.minLat &&
-    point.lat <= municipalityBounds.maxLat &&
-    point.lon >= municipalityBounds.minLon &&
-    point.lon <= municipalityBounds.maxLon
-  )
-}
-
-async function loadWaterPoints() {
+// ---------- Drinkwaterpunten uit de GPX ----------
+async function loadWater() {
   try {
-    const response = await fetch(`${import.meta.env.BASE_URL}2022 01 Drinkwaterkaart.gpx`)
-
-    if (!response.ok) {
-      throw new Error(`Kan GPX niet laden: ${response.status}`)
-    }
-
-    const text = await response.text()
-    const parser = new DOMParser()
-    const xml = parser.parseFromString(text, 'application/xml')
-    const points = Array.from(xml.querySelectorAll('wpt'))
-      .map((waypoint) => {
-        const lat = Number(waypoint.getAttribute('lat'))
-        const lon = Number(waypoint.getAttribute('lon'))
-        const name = waypoint.querySelector('name')?.textContent?.trim() ?? s.unknownLocation
-        const comment = waypoint.querySelector('cmt')?.textContent?.trim() ?? ''
-
-        return { name, lat, lon, comment } satisfies WaterPoint
-      })
-      .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lon) && isInLeiden(point))
+    const points = await loadWaterPoints(import.meta.env.BASE_URL, s.unknownLocation)
 
     layerGroups.water.clearLayers()
     counts.water = points.length
-    renderFilters() // update de teller in de zijbalk
+    categoryFilters.render(counts)
 
     points.forEach((point) => {
       const commentText = (point.comment || CATEGORIES.water.label).replace(/\s+/g, ' ').trim()
@@ -397,107 +300,18 @@ async function loadWaterPoints() {
   }
 }
 
-void loadWaterPoints()
+void loadWater()
 
-// ---------- Live temperatuurmetingen (sensorleiden.nl) ----------
-// sensorleiden.nl ontsluit het "Sensor Leiden" citizen-science netwerk
-// (Sensor.Community-achtige BME280-sensoren) als open JSON, geen API-key nodig.
-// KNMI WOW-NL en Weather Underground bleken geen bruikbare gratis/directe
-// API voor Leiden te hebben; Meet je Stad! werkt technisch maar heeft momenteel
-// geen actieve sensoren in Leiden.
-const TEMP_API_URL = 'https://www.sensorleiden.nl/api/data/now'
-const TEMP_REFRESH_MS = 5 * 60 * 1000
-// Kapotte/losgekoppelde BME280-sensoren rapporteren soms extreme uitschieters
-// (bv. -140°C); die filteren we hier weg als onrealistisch voor buitenlucht.
-const TEMP_MIN_PLAUSIBLE = -15
-const TEMP_MAX_PLAUSIBLE = 45
-
-type SensorLeidenReading = {
-  location_id: number
-  value_type: string
-  value: string
-  updated_at?: string
-  location?: { lat: string; long: string }
-}
-
-type TempPoint = {
-  lat: number
-  lon: number
-  tempC: number
-  humidity: number | null
-  updatedAt: string | null
-}
-
-function tempColor(tempC: number): string {
-  const stops: [number, [number, number, number]][] = [
-    [12, [47, 128, 237]], // koel: blauw
-    [22, [242, 153, 74]], // aangenaam: oranje
-    [32, [235, 87, 87]], // warm: rood
-  ]
-
-  const clamped = Math.max(stops[0][0], Math.min(stops[stops.length - 1][0], tempC))
-  const upperIndex = stops.findIndex(([t]) => t >= clamped)
-  const [t1, c1] = stops[Math.max(0, upperIndex - 1)]
-  const [t2, c2] = stops[upperIndex]
-  const ratio = t2 === t1 ? 0 : (clamped - t1) / (t2 - t1)
-  const [r, g, b] = c1.map((channel, i) => Math.round(channel + (c2[i] - channel) * ratio))
-
-  return `rgb(${r}, ${g}, ${b})`
-}
-
-function makeTempIcon(tempC: number) {
-  return L.divIcon({
-    html: `<span class="temp-badge" style="background:${tempColor(tempC)}">${Math.round(tempC)}°</span>`,
-    className: 'temp-badge-marker',
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-    popupAnchor: [0, -16],
-  })
-}
+// ---------- Live temperatuurmetingen (sensorleiden.nl + RIVM Samen Meten) ----------
+const TEMP_SOURCE_LABEL = { sensorleiden: s.sourceSensorLeiden, samenmeten: s.sourceSamenMeten }
 
 async function loadTemperatureLayer() {
   try {
-    const response = await fetch(TEMP_API_URL)
-
-    if (!response.ok) {
-      throw new Error(`Kon temperatuurmetingen niet laden: ${response.status}`)
-    }
-
-    const data = (await response.json()) as { sensors: SensorLeidenReading[] }
-    const sensors = data.sensors ?? []
-
-    const humidityByLocation = new Map<number, number>()
-    sensors.forEach((sensor) => {
-      if (sensor.value_type === 'humidity') {
-        const humidity = Number.parseFloat(sensor.value)
-        if (Number.isFinite(humidity)) {
-          humidityByLocation.set(sensor.location_id, humidity)
-        }
-      }
-    })
-
-    const points: TempPoint[] = sensors
-      .filter((sensor) => sensor.value_type === 'temperature')
-      .map((sensor) => ({
-        lat: Number.parseFloat(sensor.location?.lat ?? ''),
-        lon: Number.parseFloat(sensor.location?.long ?? ''),
-        tempC: Number.parseFloat(sensor.value),
-        humidity: humidityByLocation.get(sensor.location_id) ?? null,
-        updatedAt: sensor.updated_at ?? null,
-      }))
-      .filter(
-        (point) =>
-          Number.isFinite(point.lat) &&
-          Number.isFinite(point.lon) &&
-          isInLeiden(point) &&
-          Number.isFinite(point.tempC) &&
-          point.tempC > TEMP_MIN_PLAUSIBLE &&
-          point.tempC < TEMP_MAX_PLAUSIBLE,
-      )
+    const points = await loadAllTemperatures()
 
     layerGroups.temperatuur.clearLayers()
     counts.temperatuur = points.length
-    renderFilters()
+    categoryFilters.render(counts)
 
     points.forEach((point) => {
       const time = point.updatedAt
@@ -505,15 +319,14 @@ async function loadTemperatureLayer() {
         : null
       const humidityText = point.humidity !== null ? s.humidity(Math.round(point.humidity)) : ''
       const timeText = time ? s.updatedAt(time) : ''
-      const body = `${point.tempC.toFixed(1)}°C${humidityText}${timeText}`
+      const sourceText = ` · ${TEMP_SOURCE_LABEL[point.source]}`
+      const body = `${point.tempC.toFixed(1)}°C${humidityText}${timeText}${sourceText}`
       const content = buildPopupContent(s.temperatureSensor, body)
 
       const marker = L.marker([point.lat, point.lon], { icon: makeTempIcon(point.tempC) })
         .bindPopup(content, { autoPan: true })
         .addTo(layerGroups.temperatuur)
-      marker
-        .getElement()
-        ?.setAttribute('aria-label', `${s.temperatureSensor}: ${point.tempC.toFixed(1)}°C`)
+      marker.getElement()?.setAttribute('aria-label', `${s.temperatureSensor}: ${point.tempC.toFixed(1)}°C`)
     })
   } catch (error) {
     console.error('Kon temperatuurmetingen niet laden', error)
@@ -521,65 +334,4 @@ async function loadTemperatureLayer() {
 }
 
 void loadTemperatureLayer()
-setInterval(loadTemperatureLayer, TEMP_REFRESH_MS)
-
-// ---------- Zijbalk met filters per categorie ----------
-// De rijen worden één keer aangemaakt en daarna alleen bijgewerkt (i.p.v.
-// innerHTML te vervangen), anders verliest een toetsenbordgebruiker de focus
-// zodra de 5-minuten temperatuurrefresh de tellers ververst.
-const filterCountEls = new Map<CategoryKey, HTMLSpanElement>()
-
-function renderFilters() {
-  const filtersEl = document.getElementById('filters')
-  if (!filtersEl) return
-
-  if (filterCountEls.size === 0) {
-    ;(Object.keys(CATEGORIES) as CategoryKey[]).forEach((key) => {
-      const cfg = CATEGORIES[key]
-      const row = document.createElement('label')
-      row.className = 'filter-row'
-
-      const input = document.createElement('input')
-      input.type = 'checkbox'
-      input.checked = true
-      input.dataset.cat = key
-
-      const icon = document.createElement('img')
-      icon.className = 'filter-emoji'
-      icon.src = cfg.icon
-      icon.width = 18
-      icon.height = 18
-      icon.alt = ''
-
-      const label = document.createElement('span')
-      label.className = 'filter-label'
-      label.textContent = cfg.label
-
-      const count = document.createElement('span')
-      count.className = 'filter-count'
-      count.textContent = String(counts[key])
-
-      row.append(input, icon, label, count)
-      filtersEl.appendChild(row)
-      filterCountEls.set(key, count)
-    })
-  } else {
-    filterCountEls.forEach((count, key) => {
-      count.textContent = String(counts[key])
-    })
-  }
-}
-
-renderFilters()
-
-document.getElementById('filters')?.addEventListener('change', (e) => {
-  const target = e.target as HTMLInputElement
-  if (target.matches('input[type=checkbox]')) {
-    const cat = target.dataset.cat as CategoryKey
-    if (target.checked) {
-      map.addLayer(layerGroups[cat])
-    } else {
-      map.removeLayer(layerGroups[cat])
-    }
-  }
-})
+setInterval(loadTemperatureLayer, Math.min(SENSOR_LEIDEN_REFRESH_MS, SAMEN_METEN_REFRESH_MS))

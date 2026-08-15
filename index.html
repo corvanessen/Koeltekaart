@@ -8,10 +8,10 @@
     <meta name="theme-color" content="#102937" />
     <link rel="stylesheet" href="/src/style.css" />
 
-    <title>Koeltekaart Leiden – koele plekken, water en schaduw bij hitte</title>
+    <title>Koeltekaart Leidse regio – koele plekken, water en schaduw bij hitte</title>
     <meta
       name="description"
-      content="Vind koele plekken in Leiden bij hitte: drinkwaterpunten, schaduwrijke parken, gratis zwemwater, zwembaden en koele binnenlocaties op een interactieve kaart."
+      content="Vind koele plekken in de Leidse regio bij hitte: drinkwaterpunten, schaduwrijke parken, gratis zwemwater, zwembaden en koele binnenlocaties op een interactieve kaart, sorteerbaar op plaats en gemeente."
     />
     <link rel="canonical" href="https://corvanessen.github.io/Koeltekaart/" />
     <link rel="alternate" hreflang="nl" href="https://corvanessen.github.io/Koeltekaart/" />
@@ -19,28 +19,28 @@
     <link rel="alternate" hreflang="x-default" href="https://corvanessen.github.io/Koeltekaart/" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Koeltekaart Leiden" />
+    <meta property="og:site_name" content="Koeltekaart Leidse regio" />
     <meta property="og:locale" content="nl_NL" />
     <meta property="og:locale:alternate" content="en_US" />
     <meta property="og:url" content="https://corvanessen.github.io/Koeltekaart/" />
-    <meta property="og:title" content="Koeltekaart Leiden – koele plekken bij hitte" />
+    <meta property="og:title" content="Koeltekaart Leidse regio – koele plekken bij hitte" />
     <meta
       property="og:description"
-      content="Vind koele plekken in Leiden bij hitte: drinkwaterpunten, schaduwrijke parken, gratis zwemwater, zwembaden en koele binnenlocaties op een interactieve kaart."
+      content="Vind koele plekken in de Leidse regio bij hitte: drinkwaterpunten, schaduwrijke parken, gratis zwemwater, zwembaden en koele binnenlocaties op een interactieve kaart, sorteerbaar op plaats en gemeente."
     />
     <meta property="og:image" content="https://corvanessen.github.io/Koeltekaart/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Screenshot van de interactieve koeltekaart van Leiden met markers voor drinkwater, parken en zwemwater"
+      content="Screenshot van de interactieve koeltekaart van de Leidse regio met markers voor drinkwater, parken en zwemwater"
     />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Koeltekaart Leiden – koele plekken bij hitte" />
+    <meta name="twitter:title" content="Koeltekaart Leidse regio – koele plekken bij hitte" />
     <meta
       name="twitter:description"
-      content="Vind koele plekken in Leiden bij hitte: drinkwaterpunten, schaduwrijke parken, gratis zwemwater, zwembaden en koele binnenlocaties op een interactieve kaart."
+      content="Vind koele plekken in de Leidse regio bij hitte: drinkwaterpunten, schaduwrijke parken, gratis zwemwater, zwembaden en koele binnenlocaties op een interactieve kaart, sorteerbaar op plaats en gemeente."
     />
     <meta name="twitter:image" content="https://corvanessen.github.io/Koeltekaart/og-image.png" />
 
@@ -54,10 +54,10 @@
       {
         "@context": "https://schema.org",
         "@type": "WebApplication",
-        "name": "Koeltekaart Leiden",
+        "name": "Koeltekaart Leidse regio",
         "alternateName": "Koeltekaart",
         "url": "https://corvanessen.github.io/Koeltekaart/",
-        "description": "Interactieve kaart met koelteplekken in Leiden: drinkwaterpunten, schaduwrijke parken, gratis zwemwater, zwembaden, koele binnenlocaties en live temperatuurmetingen.",
+        "description": "Interactieve kaart met koelteplekken in de Leidse regio: drinkwaterpunten, schaduwrijke parken, gratis zwemwater, zwembaden, koele binnenlocaties en live temperatuurmetingen, sorteerbaar op plaats en gemeente.",
         "applicationCategory": "UtilitiesApplication",
         "operatingSystem": "Any (webbrowser)",
         "browserRequirements": "Requires JavaScript",
@@ -68,15 +68,16 @@
           "price": "0",
           "priceCurrency": "EUR"
         },
-        "spatialCoverage": {
-          "@type": "City",
-          "name": "Leiden",
-          "containedInPlace": {
-            "@type": "AdministrativeArea",
-            "name": "Zuid-Holland"
-          }
-        },
-        "keywords": "koelteplek Leiden, drinkwaterpunt Leiden, gratis zwemwater Leiden, zwembad Leiden, afkoelen bij hitte"
+        "spatialCoverage": [
+          { "@type": "City", "name": "Leiden" },
+          { "@type": "City", "name": "Leiderdorp" },
+          { "@type": "City", "name": "Oegstgeest" },
+          { "@type": "City", "name": "Voorschoten" },
+          { "@type": "City", "name": "Zoeterwoude" },
+          { "@type": "City", "name": "Teylingen" },
+          { "@type": "City", "name": "Leidschendam-Voorburg" }
+        ],
+        "keywords": "koelteplek Leidse regio, drinkwaterpunt Leiden, gratis zwemwater Leiden, zwembad Leiden, afkoelen bij hitte, Leiderdorp, Oegstgeest, Voorschoten, Zoeterwoude, Teylingen, Leidschendam-Voorburg"
       }
     </script>
   </head>
@@ -85,8 +86,8 @@
       <header class="page-header">
         <div class="header-top">
           <div>
-            <h1>Koeltekaart Leiden</h1>
-            <p>Koele plekken bij hitte, in en om Leiden.</p>
+            <h1>Koeltekaart Leidse regio</h1>
+            <p>Koele plekken bij hitte, in Leiden en de omliggende gemeentes.</p>
           </div>
           <div class="header-top-actions">
             <div class="weather-badge" id="weatherBadge" aria-live="polite">Weer wordt geladen…</div>
@@ -96,17 +97,22 @@
         <details class="intro-details">
           <summary>Over deze koeltekaart</summary>
           <p>
-            Koeltekaart Leiden is een interactieve kaart met koele plekken in Leiden bij warm weer.
-            Je vindt er drinkwaterpunten, schaduwrijke parken, gratis buitenzwemwater, betaalde
-            zwembaden en koele binnenlocaties zoals bibliotheken en buurthuizen. Ook toont de kaart
-            live temperatuurmetingen via sensorleiden.nl en de actuele weersverwachting voor Leiden.
-            Filter op categorie in de zijbalk om snel een koele plek bij jou in de buurt te vinden.
+            Koeltekaart Leidse regio is een interactieve kaart met koele plekken bij warm weer in
+            Leiden, Leiderdorp, Oegstgeest, Voorschoten, Zoeterwoude, Teylingen en
+            Leidschendam-Voorburg. Je vindt er drinkwaterpunten, schaduwrijke parken, gratis
+            buitenzwemwater, betaalde zwembaden en koele binnenlocaties zoals bibliotheken en
+            buurthuizen. Ook toont de kaart live temperatuurmetingen via sensorleiden.nl en het
+            landelijke Samen Meten-netwerk (RIVM), en de actuele weersverwachting. Filter op
+            categorie en gemeente in de zijbalk, of sorteer alle locaties op naam, plaats of
+            gemeente.
           </p>
         </details>
       </header>
       <main class="layout" id="layout">
         <aside class="sidebar" id="sidebar">
           <div class="sidebar-inner">
+            <h2>Zoeken</h2>
+            <div id="municipalitySearch"></div>
             <h2>Categorieën</h2>
             <div id="filters"></div>
           </div>
@@ -117,7 +123,8 @@
         <div id="map"></div>
         <p class="legend-note">
           Gegevens verzameld uit gemeentelijke berichtgeving, drinkwaterkaart.nl,
-          OpenBomenKaart, OpenStreetMap en sensorleiden.nl (live temperatuursensoren).
+          OpenBomenKaart, OpenStreetMap, sensorleiden.nl en het Samen Meten-dataportaal
+          van het RIVM (live temperatuursensoren).
           Locaties, openingstijden en metingen kunnen wijzigen.
           <a class="legend-github" href="https://github.com/corvanessen/Koeltekaart" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository" title="GitHub repository">
             <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">

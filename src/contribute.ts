@@ -2,6 +2,7 @@ import L from 'leaflet'
 import { CATEGORY_LABELS } from './categoryLabels'
 import { getLocale } from './locale'
 import { STRINGS } from './i18n'
+import { MUNICIPALITIES, findMunicipality, type MunicipalityId } from '../shared/municipalities'
 
 const locale = getLocale()
 const s = STRINGS[locale]
@@ -18,6 +19,8 @@ export type ContributionSubject = {
   desc: string
   lat: number
   lon: number
+  place?: string
+  municipality?: MunicipalityId
 }
 
 type ContributionPayload = {
@@ -29,6 +32,8 @@ type ContributionPayload = {
   desc: string
   lat: number
   lon: number
+  place: string
+  municipality: MunicipalityId
   website: string
 }
 
@@ -51,11 +56,11 @@ function escapeAttr(value: string): string {
 }
 
 export function buildSuggestEditLink(subject: ContributionSubject): string {
-  return `<button type="button" class="suggest-edit-link" data-id="${escapeAttr(subject.id)}" data-cat="${escapeAttr(subject.cat)}" data-name="${escapeAttr(subject.name)}" data-addr="${escapeAttr(subject.addr)}" data-desc="${escapeAttr(subject.desc)}" data-lat="${subject.lat}" data-lon="${subject.lon}">${s.suggestEdit}</button>`
+  return `<button type="button" class="suggest-edit-link" data-id="${escapeAttr(subject.id)}" data-cat="${escapeAttr(subject.cat)}" data-name="${escapeAttr(subject.name)}" data-addr="${escapeAttr(subject.addr)}" data-desc="${escapeAttr(subject.desc)}" data-lat="${subject.lat}" data-lon="${subject.lon}" data-place="${escapeAttr(subject.place ?? '')}" data-municipality="${escapeAttr(subject.municipality ?? '')}">${s.suggestEdit}</button>`
 }
 
 function readSuggestEditSubject(button: HTMLElement): ContributionSubject | null {
-  const { id, cat, name, addr, desc, lat, lon } = button.dataset
+  const { id, cat, name, addr, desc, lat, lon, place, municipality } = button.dataset
   if (!id || !cat || !name || !lat || !lon) return null
   if (!EDITABLE_CATEGORIES.includes(cat as EditableCategoryKey)) return null
 
@@ -67,6 +72,8 @@ function readSuggestEditSubject(button: HTMLElement): ContributionSubject | null
     desc: desc ?? '',
     lat: Number(lat),
     lon: Number(lon),
+    place: place || undefined,
+    municipality: (municipality || undefined) as MunicipalityId | undefined,
   }
 }
 
@@ -113,6 +120,34 @@ function buildContributionForm(mode: 'add' | 'edit', latlng: L.LatLng, subject?:
   addrInput.value = subject?.addr ?? ''
   addrLabel.appendChild(addrInput)
   form.appendChild(addrLabel)
+
+  const municipalityLabel = document.createElement('label')
+  municipalityLabel.className = 'contribute-label'
+  municipalityLabel.textContent = s.fieldMunicipality
+  const municipalitySelect = document.createElement('select')
+  MUNICIPALITIES.forEach((muni) => {
+    const option = document.createElement('option')
+    option.value = muni.id
+    option.textContent = muni.name
+    municipalitySelect.appendChild(option)
+  })
+  municipalitySelect.value = subject?.municipality ?? findMunicipality({ lat: latlng.lat, lon: latlng.lng }) ?? MUNICIPALITIES[0].id
+  municipalityLabel.appendChild(municipalitySelect)
+  form.appendChild(municipalityLabel)
+
+  const placeLabel = document.createElement('label')
+  placeLabel.className = 'contribute-label'
+  placeLabel.textContent = s.fieldPlace
+  const placeInput = document.createElement('input')
+  placeInput.type = 'text'
+  placeInput.maxLength = NAME_MAX
+  placeInput.value = subject?.place ?? ''
+  placeInput.placeholder = MUNICIPALITIES.find((m) => m.id === municipalitySelect.value)?.places[0]?.name ?? ''
+  municipalitySelect.addEventListener('change', () => {
+    placeInput.placeholder = MUNICIPALITIES.find((m) => m.id === municipalitySelect.value)?.places[0]?.name ?? ''
+  })
+  placeLabel.appendChild(placeInput)
+  form.appendChild(placeLabel)
 
   const descLabel = document.createElement('label')
   descLabel.className = 'contribute-label'
@@ -186,6 +221,8 @@ function buildContributionForm(mode: 'add' | 'edit', latlng: L.LatLng, subject?:
       desc: descInput.value.trim(),
       lat: latlng.lat,
       lon: latlng.lng,
+      place: placeInput.value.trim() || (MUNICIPALITIES.find((m) => m.id === municipalitySelect.value)?.places[0]?.name ?? ''),
+      municipality: municipalitySelect.value as MunicipalityId,
       website: honeypotInput.value,
     }
 
