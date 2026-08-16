@@ -62,3 +62,14 @@ anders komt die locatie bij de volgende run terug).
    `locations.json` daarin.
 3. Bekijk de diff in KoelteKaartData zoals je dat bij elke andere wijziging doet,
    schrap wat niet klopt, en commit + push zelf wanneer je tevreden bent.
+
+## Park-omtrekken verversen vanuit OpenStreetMap
+
+[public/parks.geojson](public/parks.geojson) werd lange tijd handmatig gedownload
+(twee keer, telkens als de regio groeide). [scripts/import-parks.ts](scripts/import-parks.ts)
+maakt dat herhaalbaar: `npm run import:parks` haalt alle `leisure=park`-vlakken uit
+OpenStreetMap voor de hele regio op, zet ze (incl. multipolygon-relaties met gaten
+erin) om naar GeoJSON, en overschrijft `public/parks.geojson` ermee. Geen los
+review- of PR-moment nodig — dit is geen "koelteplek"-inzending met een
+toegankelijkheidsvraag, gewoon een weergavelaag, dus bekijk de git-diff van dit
+bestand na het draaien zoals je dat ook bij een handmatige re-download zou doen.
