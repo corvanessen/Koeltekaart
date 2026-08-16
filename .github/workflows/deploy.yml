@@ -19,6 +19,7 @@ jobs:
       - run: npm run build
         env:
           VITE_SUBMIT_ENDPOINT: ${{ vars.VITE_SUBMIT_ENDPOINT }}
+          VITE_TEMPERATURE_ENDPOINT: ${{ vars.VITE_TEMPERATURE_ENDPOINT }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist

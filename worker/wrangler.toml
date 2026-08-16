@@ -24,4 +24,4 @@ id = "e905179005bd4a2db33bee285fcc70da"
 # Samen Meten-temperaturen (zie TEMPERATURE_CACHE_KEY in src/index.ts).
 [[kv_namespaces]]
 binding = "CACHE_KV"
-id = "<vul-hier-de-namespace-id-in-na-aanmaken>"
+id = "71396cde53b843639a681643e8152c85"
