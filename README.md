@@ -41,3 +41,39 @@ hoeft niet opnieuw te deployen. **Afwijzen = de PR sluiten.**
 
 Zonder deze variabelen toont het formulier gewoon een duidelijke melding in plaats
 van te crashen, en blijft de temperatuurlaag beperkt tot sensorleiden.nl.
+
+## Nieuwe locaties vinden via OpenStreetMap
+
+[scripts/import-osm.ts](scripts/import-osm.ts) haalt kandidaat-locaties (bibliotheken,
+gemeentehuizen, zwembaden) uit OpenStreetMap voor de hele regio en schrijft ze naar
+`osm-candidates.json` (gitignored). Dit zijn **ongeverifieerde kandidaten** — OSM
+bevestigt alleen dat een gebouw bestaat, niet dat het tijdens hitte echt vrij
+toegankelijk is als koelplek.
+
+1. `npm run import:osm` — genereert/ververst `osm-candidates.json`.
+2. Loop het bestand na en verwijder wat je niet wilt overnemen (bijv. omdat de
+   locatie niet vrij toegankelijk blijkt).
+3. Maak een GitHub fine-grained personal access token aan (zelfde soort token als
+   hierboven bij de Worker: alléén toegang tot **KoelteKaartData**, met
+   `Contents: Read and write` + `Pull requests: Read and write`) via
+   [github.com/settings/tokens?type=beta](https://github.com/settings/tokens?type=beta).
+   De worker-secret kun je hier niet voor hergebruiken — die is niet uitleesbaar
+   nadat je 'm bij Cloudflare hebt gezet.
+4. Zet het token tijdelijk in je terminal en draai het publiceer-script:
+
+   PowerShell:
+   ```powershell
+   $env:GITHUB_TOKEN = "github_pat_..."
+   npm run publish:osm
+   ```
+
+   Bash:
+   ```bash
+   GITHUB_TOKEN=github_pat_... npm run publish:osm
+   ```
+
+   Dit zet de token alleen voor die terminalsessie — er wordt niets in een
+   bestand of in git opgeslagen.
+5. [scripts/publish-osm-candidates.ts](scripts/publish-osm-candidates.ts) opent
+   daarmee één PR op KoelteKaartData met alles wat nog in `osm-candidates.json`
+   staat. Mergen = goedkeuren, precies zoals bij losse community-inzendingen.
