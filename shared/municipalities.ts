@@ -11,6 +11,7 @@ export type MunicipalityId =
   | 'zoeterwoude'
   | 'teylingen'
   | 'leidschendam-voorburg'
+  | 'tilburg'
 
 export type Place = {
   name: string
@@ -88,6 +89,23 @@ export const MUNICIPALITIES: Municipality[] = [
     ],
     center: [52.0836, 4.3908],
     defaultZoom: 12,
+  },
+  // Experiment: ver van de rest van de regio verwijderd, toegevoegd om te
+  // testen wat er nog handmatig moet gebeuren om een nieuwe stad aan te
+  // sluiten (zie project plan koeltekaart.md voor de bevindingen).
+  // Plaats-centra via PDOK Locatieserver (fq=type:woonplaats), gemeentecentrum
+  // via fq=type:gemeente — zelfde bron als de rest van dit bestand.
+  {
+    id: 'tilburg',
+    name: 'Tilburg',
+    places: [
+      { name: 'Tilburg', center: [51.57275, 5.0453] },
+      { name: 'Berkel-Enschot', center: [51.57701, 5.13891] },
+      { name: 'Udenhout', center: [51.6184, 5.13658] },
+      { name: 'Biezenmortel', center: [51.62223, 5.1809] },
+    ],
+    center: [51.58342, 5.07737],
+    defaultZoom: 11,
   },
 ]
 

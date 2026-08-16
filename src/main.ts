@@ -1,4 +1,5 @@
 import 'leaflet/dist/leaflet.css'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
 import L from 'leaflet'
 import { CATEGORY_LABELS, type CategoryKey } from './categoryLabels'
 import { EDITABLE_CATEGORIES, buildSuggestEditLink, initContributions, type EditableCategoryKey } from './contribute'
@@ -10,6 +11,7 @@ import { loadWaterPoints } from './dataSources/waterPoints'
 import { loadParkOutlines } from './dataSources/parks'
 import { loadAllTemperatures, SAMEN_METEN_REFRESH_MS, SENSOR_LEIDEN_REFRESH_MS } from './dataSources/temperature'
 import { buildPopupContent, makeIcon, makeTempIcon } from './render/markers'
+import { attachTemp, createClusterGroup, createTemperatureClusterGroup, createWaterClusterGroup } from './render/clusters'
 import { createCategoryFilterList } from './render/filters'
 import { createMunicipalitySearch } from './render/search'
 
@@ -197,14 +199,18 @@ map.on('locationerror', (e: L.ErrorEvent) => {
   alert(s.locationError(e.message))
 })
 
-// ---------- Laag-registry: één LayerGroup per categorie ----------
+// ---------- Laag-registry: één (cluster)LayerGroup per categorie ----------
+// Clustering houdt de kaart rustig bij uitzoomen: gemeentes liggen ver genoeg
+// uit elkaar dat categorieën daar vanzelf per gemeente bundelen, terwijl
+// disableClusteringAtZoom (CITY_ZOOM) zorgt dat zodra een hele plaats in beeld
+// is, alle losse locaties weer zichtbaar zijn. Zie src/render/clusters.ts.
 const layerGroups: Record<CategoryKey, L.LayerGroup> = {
-  water: L.layerGroup().addTo(map),
-  binnen: L.layerGroup().addTo(map),
-  park: L.layerGroup().addTo(map),
-  zwembad: L.layerGroup().addTo(map),
-  buitenwater: L.layerGroup().addTo(map),
-  temperatuur: L.layerGroup().addTo(map),
+  water: createWaterClusterGroup(CATEGORIES.water.icon).addTo(map),
+  binnen: createClusterGroup(CATEGORIES.binnen.icon).addTo(map),
+  park: createClusterGroup(CATEGORIES.park.icon).addTo(map),
+  zwembad: createClusterGroup(CATEGORIES.zwembad.icon).addTo(map),
+  buitenwater: createClusterGroup(CATEGORIES.buitenwater.icon).addTo(map),
+  temperatuur: createTemperatureClusterGroup().addTo(map),
 }
 
 const counts: Record<CategoryKey, number> = { water: 0, binnen: 0, park: 0, zwembad: 0, buitenwater: 0, temperatuur: 0 }
@@ -241,7 +247,10 @@ async function loadStaticLocationsToMap() {
       const marker = L.marker([loc.lat, loc.lon], { icon: makeIcon(CATEGORIES[loc.cat].icon) })
         .bindPopup(content, { autoPan: true })
         .addTo(layerGroups[loc.cat])
-      marker.getElement()?.setAttribute('aria-label', `${CATEGORIES[loc.cat].label}: ${loc.name}`)
+      // Geclusterde markers krijgen pas een DOM-element zodra ze los getoond
+      // worden (uitgezoomd zitten ze verborgen in een cluster-icoon), dus het
+      // aria-label moet bij elke 'add' opnieuw gezet worden, niet eenmalig hier.
+      marker.on('add', () => marker.getElement()?.setAttribute('aria-label', `${CATEGORIES[loc.cat].label}: ${loc.name}`))
     })
 
     categoryFilters.render(counts)
@@ -293,7 +302,7 @@ async function loadWater() {
       const marker = L.marker([point.lat, point.lon], { icon: makeIcon(CATEGORIES.water.icon) })
         .bindPopup(content, { autoPan: true })
         .addTo(layerGroups.water)
-      marker.getElement()?.setAttribute('aria-label', `${CATEGORIES.water.label}: ${point.name}`)
+      marker.on('add', () => marker.getElement()?.setAttribute('aria-label', `${CATEGORIES.water.label}: ${point.name}`))
     })
   } catch (error) {
     console.error('Kon drinkwaterpunten niet laden', error)
@@ -323,10 +332,10 @@ async function loadTemperatureLayer() {
       const body = `${point.tempC.toFixed(1)}°C${humidityText}${timeText}${sourceText}`
       const content = buildPopupContent(s.temperatureSensor, body)
 
-      const marker = L.marker([point.lat, point.lon], { icon: makeTempIcon(point.tempC) })
+      const marker = attachTemp(L.marker([point.lat, point.lon], { icon: makeTempIcon(point.tempC) }), point.tempC)
         .bindPopup(content, { autoPan: true })
         .addTo(layerGroups.temperatuur)
-      marker.getElement()?.setAttribute('aria-label', `${s.temperatureSensor}: ${point.tempC.toFixed(1)}°C`)
+      marker.on('add', () => marker.getElement()?.setAttribute('aria-label', `${s.temperatureSensor}: ${point.tempC.toFixed(1)}°C`))
     })
   } catch (error) {
     console.error('Kon temperatuurmetingen niet laden', error)

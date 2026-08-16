@@ -45,35 +45,31 @@ van te crashen, en blijft de temperatuurlaag beperkt tot sensorleiden.nl.
 ## Nieuwe locaties vinden via OpenStreetMap
 
 [scripts/import-osm.ts](scripts/import-osm.ts) haalt kandidaat-locaties (bibliotheken,
-gemeentehuizen, zwembaden) uit OpenStreetMap voor de hele regio en schrijft ze naar
-`osm-candidates.json` (gitignored). Dit zijn **ongeverifieerde kandidaten** — OSM
-bevestigt alleen dat een gebouw bestaat, niet dat het tijdens hitte echt vrij
-toegankelijk is als koelplek.
+gemeentehuizen, zwembaden) uit OpenStreetMap voor de hele regio en schrijft ze direct
+in je lokale kloon van **KoelteKaartData** — geen los reviewbestand, geen GitHub-token.
+Dit zijn **ongeverifieerde kandidaten** — OSM bevestigt alleen dat een gebouw bestaat,
+niet dat het tijdens hitte echt vrij toegankelijk is als koelplek, dus de git-diff in
+KoelteKaartData is het reviewmoment: verwijder daar wat niet klopt vóór je commit en
+pusht (en zet de osm.org-ref uit het desc-veld dan in `scripts/osm-ignore.json`,
+anders komt die locatie bij de volgende run terug).
 
-1. `npm run import:osm` — genereert/ververst `osm-candidates.json`.
-2. Loop het bestand na en verwijder wat je niet wilt overnemen (bijv. omdat de
-   locatie niet vrij toegankelijk blijkt).
-3. Maak een GitHub fine-grained personal access token aan (zelfde soort token als
-   hierboven bij de Worker: alléén toegang tot **KoelteKaartData**, met
-   `Contents: Read and write` + `Pull requests: Read and write`) via
-   [github.com/settings/tokens?type=beta](https://github.com/settings/tokens?type=beta).
-   De worker-secret kun je hier niet voor hergebruiken — die is niet uitleesbaar
-   nadat je 'm bij Cloudflare hebt gezet.
-4. Zet het token tijdelijk in je terminal en draai het publiceer-script:
+1. Zorg dat **KoelteKaartData** als sibling-map van deze repo gekloond staat (dus
+   naast, niet in, deze map) en dat git daar al met jouw GitHub-account kan
+   pushen — normale git-inloggegevens, geen apart token. Staat 'm ergens anders,
+   zet dan de env var `KOELTEKAART_DATA_PATH` naar het pad.
+2. `npm run import:osm` — pullt eerst KoelteKaartData bij (met een schone checkout
+   als eis, zodat er nooit iets overschreven wordt) en voegt de kandidaten toe aan
+   `locations.json` daarin.
+3. Bekijk de diff in KoelteKaartData zoals je dat bij elke andere wijziging doet,
+   schrap wat niet klopt, en commit + push zelf wanneer je tevreden bent.
 
-   PowerShell:
-   ```powershell
-   $env:GITHUB_TOKEN = "github_pat_..."
-   npm run publish:osm
-   ```
+## Park-omtrekken verversen vanuit OpenStreetMap
 
-   Bash:
-   ```bash
-   GITHUB_TOKEN=github_pat_... npm run publish:osm
-   ```
-
-   Dit zet de token alleen voor die terminalsessie — er wordt niets in een
-   bestand of in git opgeslagen.
-5. [scripts/publish-osm-candidates.ts](scripts/publish-osm-candidates.ts) opent
-   daarmee één PR op KoelteKaartData met alles wat nog in `osm-candidates.json`
-   staat. Mergen = goedkeuren, precies zoals bij losse community-inzendingen.
+[public/parks.geojson](public/parks.geojson) werd lange tijd handmatig gedownload
+(twee keer, telkens als de regio groeide). [scripts/import-parks.ts](scripts/import-parks.ts)
+maakt dat herhaalbaar: `npm run import:parks` haalt alle `leisure=park`-vlakken uit
+OpenStreetMap voor de hele regio op, zet ze (incl. multipolygon-relaties met gaten
+erin) om naar GeoJSON, en overschrijft `public/parks.geojson` ermee. Geen los
+review- of PR-moment nodig — dit is geen "koelteplek"-inzending met een
+toegankelijkheidsvraag, gewoon een weergavelaag, dus bekijk de git-diff van dit
+bestand na het draaien zoals je dat ook bij een handmatige re-download zou doen.

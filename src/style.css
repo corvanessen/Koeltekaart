@@ -394,6 +394,51 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
+.category-cluster-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.category-cluster-count {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--accent-hover);
+  line-height: 1;
+}
+
+.temp-cluster-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card);
+  color: #fff;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.temp-cluster-value {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.temp-cluster-count {
+  font-size: 0.6rem;
+  opacity: 0.9;
+}
+
 .leaflet-tooltip {
   width: 12rem;
   max-width: 12rem;
