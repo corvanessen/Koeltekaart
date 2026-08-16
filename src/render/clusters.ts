@@ -2,10 +2,13 @@ import L from 'leaflet'
 import 'leaflet.markercluster'
 import { tempColor } from './markers'
 
-// Vanaf dit zoomniveau tonen we altijd losse markers i.p.v. clusters. Dit is
-// het laagste defaultZoom van onze gemeentes (Leiden, zie shared/municipalities.ts),
-// dus zodra een hele plaats in beeld is, zijn alle individuele locaties zichtbaar.
-export const CITY_ZOOM = 12
+// Vanaf dit zoomniveau tonen we altijd losse markers i.p.v. clusters. Dit moet
+// gelijk zijn aan het laagste defaultZoom van onze gemeentes (zie
+// shared/municipalities.ts — momenteel Tilburg), dus zodra een hele plaats in
+// beeld is, zijn alle individuele locaties zichtbaar. Niets controleert dit
+// automatisch: bij een nieuwe gemeente met een lager defaultZoom moet dit getal
+// mee omlaag.
+export const CITY_ZOOM = 11
 
 export type TempMarker = L.Marker & { tempC: number }
 

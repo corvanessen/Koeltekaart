@@ -25,6 +25,7 @@ const CBS_CODE: Record<MunicipalityId, string> = {
   zoeterwoude: '638',
   teylingen: '1525',
   'leidschendam-voorburg': '1916',
+  tilburg: '855',
 }
 
 export type SamenMetenPoint = {
