@@ -1,21 +1,29 @@
 // Haalt kandidaat-locaties (bibliotheken, gemeentehuizen, zwembaden) op uit
-// OpenStreetMap voor de hele geconfigureerde regio en schrijft ze weg als
-// review-bestand in het additions-formaat van KoelteKaartData. Committen of
-// PR'en gebeurt hier bewust niet automatisch: OSM-tags bevestigen alleen dát
-// een gebouw bestaat, niet dat het tijdens hitte echt vrij toegankelijk is
-// als koelplek — dat moet iemand nog met de hand nalopen voordat het de kaart
-// op gaat.
+// OpenStreetMap voor de hele geconfigureerde regio en schrijft ze direct in
+// het lokale KoelteKaartData-repo (ernaast gekloond) — geen los reviewbestand,
+// geen GitHub-token nodig. Dit zijn **ongeverifieerde kandidaten** — OSM
+// bevestigt alleen dat een gebouw bestaat, niet dat het tijdens hitte echt
+// vrij toegankelijk is als koelplek, dus de git-diff in KoelteKaartData is het
+// reviewmoment: verwijder daar wat niet klopt vóórdat je commit en pusht.
 //
 // Kandidaten die je al eens hebt afgewezen, komen anders bij elke run weer
 // terug — zet hun "osm.org/type/id" (staat in het desc-veld) in
 // scripts/osm-ignore.json om ze blijvend over te slaan.
 //
+// Verwacht dat KoelteKaartData als sibling-map van deze repo gekloond is
+// (../KoelteKaartData). Staat 'm ergens anders, zet dan de env var
+// KOELTEKAART_DATA_PATH.
+//
 // Gebruik: npx tsx scripts/import-osm.ts
 
 import { regionEnvelope, findMunicipality, type MunicipalityId } from '../shared/municipalities'
+import { execFile } from 'node:child_process'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { promisify } from 'node:util'
+
+const execFileAsync = promisify(execFile)
 
 type EditableCategoryKey = 'binnen' | 'park' | 'zwembad' | 'buitenwater'
 
@@ -35,9 +43,13 @@ type Candidate = {
 type ExistingLocation = { id: string; lat: number; lon: number }
 type IgnoreEntry = { ref: string; name?: string; reason?: string }
 
+type CommunityData = {
+  additions: Candidate[]
+  overrides: Record<string, unknown>
+}
+
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter'
-const BASE_LOCATIONS_URL = 'https://raw.githubusercontent.com/corvanessen/Koeltekaart/main/public/locations.json'
-const COMMUNITY_DATA_URL = 'https://raw.githubusercontent.com/corvanessen/KoelteKaartData/main/locations.json'
+const DEFAULT_DATA_REPO_PATH = '../../KoelteKaartData' // relatief aan scripts/ — sibling-map van deze repo
 // Binnen deze afstand van een bestaande locatie beschouwen we een OSM-punt als
 // (waarschijnlijk) al aanwezig, niet als nieuwe kandidaat.
 const DUPLICATE_RADIUS_METERS = 75
@@ -115,14 +127,6 @@ function addressFor(tags: Record<string, string>): string {
   return [street, place].filter(Boolean).join(', ')
 }
 
-async function fetchExistingLocations(): Promise<ExistingLocation[]> {
-  const [base, community] = await Promise.all([
-    fetch(BASE_LOCATIONS_URL).then((r) => (r.ok ? r.json() : [])) as Promise<ExistingLocation[]>,
-    fetch(COMMUNITY_DATA_URL).then((r) => (r.ok ? r.json() : { additions: [] })) as Promise<{ additions: ExistingLocation[] }>,
-  ])
-  return [...base, ...community.additions]
-}
-
 async function loadIgnoreRefs(scriptDir: string): Promise<Set<string>> {
   const ignorePath = path.resolve(scriptDir, 'osm-ignore.json')
   const raw = await fs.readFile(ignorePath, 'utf-8').catch(() => '[]')
@@ -130,16 +134,46 @@ async function loadIgnoreRefs(scriptDir: string): Promise<Set<string>> {
   return new Set(entries.map((entry) => entry.ref))
 }
 
+// Werkt alleen verder op een schone checkout, zodat we nooit per ongeluk
+// niet-gecommitte wijzigingen overschrijven of samenvoegen met een half-af
+// bewerking van locations.json.
+async function ensureCleanAndCurrent(dataRepoPath: string): Promise<void> {
+  const { stdout } = await execFileAsync('git', ['status', '--porcelain'], { cwd: dataRepoPath })
+  if (stdout.trim() !== '') {
+    throw new Error(`${dataRepoPath} heeft niet-gecommitte wijzigingen — commit of stash die eerst.`)
+  }
+  await execFileAsync('git', ['pull', '--ff-only'], { cwd: dataRepoPath })
+}
+
 async function main() {
   const scriptDir = path.dirname(fileURLToPath(import.meta.url))
+  const koeltekaartRoot = path.resolve(scriptDir, '..')
+  const dataRepoPath = path.resolve(scriptDir, process.env.KOELTEKAART_DATA_PATH ?? DEFAULT_DATA_REPO_PATH)
+  const locationsPath = path.join(dataRepoPath, 'locations.json')
+
+  await fs.access(locationsPath).catch(() => {
+    throw new Error(
+      `Kan ${locationsPath} niet vinden. Staat KoelteKaartData ergens anders gekloond, zet dan de env var KOELTEKAART_DATA_PATH.`,
+    )
+  })
+  await ensureCleanAndCurrent(dataRepoPath)
+
   const envelope = regionEnvelope()
   const bbox = `${envelope.minLat},${envelope.minLon},${envelope.maxLat},${envelope.maxLon}`
 
   console.log(`Overpass-query voor regio-bbox ${bbox} ...`)
-  const elements = await fetchOverpassElements(bbox)
+  const [elements, baseLocationsRaw, communityRaw, ignoreRefs] = await Promise.all([
+    fetchOverpassElements(bbox),
+    fs.readFile(path.join(koeltekaartRoot, 'public/locations.json'), 'utf-8'),
+    fs.readFile(locationsPath, 'utf-8'),
+    loadIgnoreRefs(scriptDir),
+  ])
   console.log(`${elements.length} ruwe OSM-resultaten opgehaald.`)
 
-  const [existing, ignoreRefs] = await Promise.all([fetchExistingLocations(), loadIgnoreRefs(scriptDir)])
+  const baseLocations = JSON.parse(baseLocationsRaw) as ExistingLocation[]
+  const community = JSON.parse(communityRaw) as CommunityData
+
+  const existing: ExistingLocation[] = [...baseLocations, ...community.additions]
   const usedIds = new Set(existing.map((loc) => loc.id))
 
   const candidates: Candidate[] = []
@@ -209,10 +243,20 @@ async function main() {
       `${skippedIgnored} eerder afgewezen (osm-ignore.json).`,
   )
 
-  const outPath = path.resolve(scriptDir, '../osm-candidates.json')
-  await fs.writeFile(outPath, `${JSON.stringify({ additions: candidates, overrides: {} }, null, 2)}\n`)
-  console.log(`Weggeschreven naar ${outPath}.`)
-  console.log('Dit is een review-bestand, geen PR — loop de kandidaten na en verplaats wat klopt handmatig naar KoelteKaartData/locations.json.')
+  if (candidates.length === 0) {
+    console.log('Niets toe te voegen.')
+    return
+  }
+
+  community.additions.push(...candidates)
+  await fs.writeFile(locationsPath, `${JSON.stringify(community, null, 2)}\n`)
+
+  console.log(`${candidates.length} kandidaten weggeschreven naar ${locationsPath}.`)
+  console.log(
+    'Bekijk de git-diff in KoelteKaartData en verwijder wat je niet wilt overnemen (zet de osm.org-ref uit het ' +
+      'desc-veld dan in scripts/osm-ignore.json, anders komt die locatie bij de volgende run terug). ' +
+      'Commit en push daarna zelf wanneer je tevreden bent.',
+  )
 }
 
 main().catch((error) => {
