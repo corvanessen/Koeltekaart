@@ -74,10 +74,11 @@ void loadWeather()
 const regionCenter = MUNICIPALITIES.find((m) => m.id === 'leiden')?.center ?? [52.1608, 4.497]
 const map = L.map('map').setView(regionCenter, 12)
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-  maxZoom: 20,
-  subdomains: 'abcd',
-  attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+// PDOK BRT-Achtergrondkaart (Kadaster): gratis en zonder API-key. CARTO's
+// basemaps vereisen inmiddels een key en tonen anders 'API KEY REQUIRED'.
+L.tileLayer('https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0/pastel/EPSG:3857/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: 'Kaartgegevens &copy; <a href="https://www.kadaster.nl">Kadaster</a>',
 }).addTo(map)
 
 initContributions(map)
